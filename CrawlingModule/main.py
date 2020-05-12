@@ -5,7 +5,6 @@ Created on Tue Mar 31 17:45:38 2020
 @author: 문성
 """
 
-
 import requests
 import stringEdit
 from bs4 import BeautifulSoup
@@ -23,7 +22,7 @@ pip install datetime
 pip install keyboard
 pip install html5lib
 pip install re
-를 쳐보십시오. 그래도 안되면 잘 모르겠는데...
+를 쳐보십시오. 그래도 안되면 잘 모르겠는데... (install이 안되는 라이브러리는 일단 넘어가시오.)
 stringEdit은 내가 만든거니까 아마 안쳐도 괜찮을걸요. 파일만있으면.
 """
 
@@ -55,10 +54,9 @@ STOP_KEY = 'q' # 콘솔에서 STOP_KEY를 꾹 누르면 저장하고 종료합�
 def processHtmlCodeToEasy( _str ):
     result = str(_str)
     result = stringEdit.removeCmpSign(result)
-    result = stringEdit.removeComma(result)
-    result = stringEdit.removeOverlapSpace(result)
-    result = stringEdit.removeEnter(result) 
-    result = stringEdit.removeFrontSpace(result)
+    result = stringEdit.replaceSpecialChara(result)
+    result = stringEdit.removeSpecialChara(result) 
+    result = stringEdit.removeWrongSpace(result)
     return result
 
 def _getComment(_url, siteIndex):
@@ -75,19 +73,30 @@ def _getComment(_url, siteIndex):
         if s != 'None':
             t.append(s)
         
-        # 게시글 내용을 해보자
+        # 게시글 내용을 해보자    
         # List라는 이름이긴 한데, 어지간하면 하나만 나올듯.
         # 옛날에 리뷰 여러개 할때는 리스트였어...
-        txtList = soup.find_all('div', {'class':re.compile('document_.*')} )
         
+        # 게시글 내용에서 특정 부분(클래스)를 제거하자
+        # 먼저 제거할 부분들을 찾아 두고 게시글 내용에 넣기 전에 제거한다.
+        plusList = []
+        plusTxt = soup.find_all('div', {'class':re.compile('recent_box_part')} )
+        for line in plusTxt:
+            plusList.append(processHtmlCodeToEasy ( line ))
+        
+        # 이부분이 진짜 게시글내용을 가져오는 부분
+        txtList = soup.find_all('div', {'class':re.compile('document_.*')} )
         for line in txtList:
             s = processHtmlCodeToEasy ( line )
+            for plus in plusList:
+                s = s.replace(plus, '')
+            
             if len(s) != 0:
                 t.append(s)
         
         if len(t) == 0:
             return ["!e"]
-        
+
         # 댓글을 해보자
         txtList = soup.find_all('div', {'class':re.compile('comment_.*')} )
         
