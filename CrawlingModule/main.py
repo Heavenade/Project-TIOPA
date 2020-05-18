@@ -189,7 +189,9 @@ while True:
     if command.find("3") == 0:
         print("프로그램을 종료합니다.")
         break
+    elif command.find("2") == 0:
         cs.InputSetting(cs)
+    elif command.find("1") == 0:
         DoCrawling(cs)
 
 '''
