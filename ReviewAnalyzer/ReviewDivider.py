@@ -1,7 +1,9 @@
 import FileManager
+import DictionaryBuilder
 import NLP
 import os
 import datetime
+import math
 import main
 
 baseDir = ''
@@ -13,14 +15,112 @@ productDic = []
 completeReviewList = []
 
 
-def Dividing(reviewData, fileName):
+def SortProductList(targetIndex=1, order='Ascend'):
+    carrierList = DictionaryBuilder.SortDic(GetProductCarrierList(0), 0, order)
+
+    resultDic = []
+    for carrier in carrierList:
+        targetDic = []
+        for dic in productDic:
+            if dic[0][0] == carrier:
+                targetDic.append(dic)
+            
+        resultDic.extend(DictionaryBuilder.SortDic(targetDic, targetIndex, order))
+
+    return resultDic
+
+
+def GetProductName(mainData='', subData=''):
+    resultList = []
+    if mainData == '':
+        for dic in productDic:
+            resultList.append(dic[1])
+
+        return resultList
+
+    productMainDiscriptionList = []
+    discriptedProductList = []
+    productList = []
+    for product in productDic:
+        didGet = False
+        for mainDiscription in product[3]:
+            if mainDiscription == '':
+                continue
+            if mainData.upper().replace(' ', '').__contains__(mainDiscription):
+                productMainDiscriptionList.append(mainDiscription)
+                discriptedProductList.append(product)
+                didGet = True
+                break
+
+        if didGet:
+            continue
+        if len(productMainDiscriptionList) > 0:
+            continue
+
+        for subDiscription in product[4]:
+            if subDiscription == '':
+                continue
+            if mainData.upper().replace(' ', '').__contains__(subDiscription):
+                productList.append(product)
+                break            
+    
+    if len(productMainDiscriptionList) > 0:
+        discriptionIndex = 0
+        targetIndex = 0
+        while True:
+            if discriptionIndex >= len(productMainDiscriptionList):
+                break
+            if targetIndex >= len(productMainDiscriptionList):
+                discriptionIndex += 1
+                targetIndex = 0
+                continue
+            if discriptionIndex == targetIndex:
+                targetIndex += 1
+                continue
+            
+            if productMainDiscriptionList[discriptionIndex].__contains__(productMainDiscriptionList[targetIndex]):
+                productMainDiscriptionList.pop(targetIndex)
+                discriptedProductList.pop(targetIndex)
+            else:
+                targetIndex += 1
+
+        for product in discriptedProductList:
+            resultList.append(product[0][0] + ' ' + product[1])
+    else:
+        if len(productList) > 0:
+            for selectedProduct in productList:
+                if subData != '':
+                    isCorrect = False
+                    for carrier in selectedProduct[0]:
+                        if subData.upper().replace(' ', '').__contains__(carrier.upper().replace(' ', '')):
+                            isCorrect = True
+                            break
+                else:
+                    isCorrect = True
+                
+                if isCorrect:
+                    resultList.append(selectedProduct[0][0] + ' ' + selectedProduct[1])
+
+    return resultList
+
+
+def Dividing(reviewData, fileName, title='', outPut=''):
     global wordDic
     global absentDic
     global dividDic
     global productDic
 
     skippedData = []
+    index = 1
+    updateTime = int(str(datetime.datetime.now().strftime('%Y%m%d%H%M%S')))
+
+    main.ShowTitle(title, outPut + 'Building dictionary for ' + fileName + ' (' + str(index) + '/' +  str(len(reviewData)) + ')')
     for data in reviewData:
+        currentTime = int(str(datetime.datetime.now().strftime('%Y%m%d%H%M%S')))
+        if updateTime < currentTime:
+            updateTime = currentTime
+            main.ShowTitle(title, outPut + 'Building dictionary for ' + fileName + ' (' + str(index) + '/' +  str(len(reviewData)) + ')')
+
         splitData = data.split(',')
         if len(splitData) < 2:
             return 'No data in ' + fileName
@@ -41,67 +141,7 @@ def Dividing(reviewData, fileName):
         if reviewTitleString == '!e':
             continue
 
-        productMainDiscriptionList = []
-        discriptedProductList = []
-        productList = []
-        for product in productDic:
-            didGet = False
-            for mainDiscription in product[4]:
-                if mainDiscription == '':
-                    continue
-                if reviewTitleString.upper().replace(' ', '').__contains__(mainDiscription):
-                    productMainDiscriptionList.append(mainDiscription)
-                    discriptedProductList.append(product)
-                    didGet = True
-                    break
-
-            if didGet:
-                continue
-            if len(productMainDiscriptionList) > 0:
-                continue
-
-            for subDiscription in product[5]:
-                if subDiscription == '':
-                    continue
-                if reviewTitleString.upper().replace(' ', '').__contains__(subDiscription):
-                    productList.append(product)
-                    break            
-        
-        if len(productMainDiscriptionList) > 0:
-            index = 0
-            targetIndex = 0
-            while True:
-                if index >= len(productMainDiscriptionList):
-                    break
-                if targetIndex >= len(productMainDiscriptionList):
-                    index += 1
-                    targetIndex = 0
-                    continue
-                if index == targetIndex:
-                    targetIndex += 1
-                    continue
-                
-                if productMainDiscriptionList[index].__contains__(productMainDiscriptionList[targetIndex]):
-                    productMainDiscriptionList.pop(targetIndex)
-                    discriptedProductList.pop(targetIndex)
-                else:
-                    targetIndex += 1
-
-            for product in discriptedProductList:
-                resultList.append(product[0][0] + ' ' + product[1])
-
-        else:
-            if len(productList) > 0:
-                for selectedProduct in productList:
-                    isCorrect = False
-                    for carrier in selectedProduct[0]:
-                        if reviewString.upper().replace(' ', '').__contains__(carrier.upper().replace(' ', '')):
-                            isCorrect = True
-                            break
-                    
-                    if isCorrect:
-                        resultList.append(selectedProduct[0][0] + ' ' + selectedProduct[1])
-            
+        resultList = GetProductName(reviewTitleString, reviewString)
         
         if len(resultList) <= 0:
             resultList = NLP.DoNLP(reviewTitleString, 'NNP')
@@ -131,6 +171,7 @@ def Dividing(reviewData, fileName):
                 newDic.append(reviewList)
                 absentDic.append(newDic)
         else:
+            wordList = NLP.DoNLP(reviewString)
             nnpList = []
             for nnp in resultList:
                 if nnpList.__contains__(nnp) == False:
@@ -140,7 +181,7 @@ def Dividing(reviewData, fileName):
                 existWord = False
                 for word in wordDic:
                     if nnp == word[0]:
-                        word[1].append(data)
+                        word[1].append(wordList)
                         existWord = True
                         break
                     
@@ -150,7 +191,7 @@ def Dividing(reviewData, fileName):
                 newDic = []
                 reviewList = []
                 newDic.append(nnp)
-                reviewList.append(data)
+                reviewList.append(wordList)
                 newDic.append(reviewList)
                 wordDic.append(newDic)
 
@@ -174,12 +215,12 @@ def Dividing(reviewData, fileName):
                 newDic.append(reviewList)
                 dividDic.append(newDic)
 
-
+        index += 1
         completeReviewList.append(reviewNumber)
 
-    returnString = "Complete building dictionary for " + fileName + '.'
+    returnString = "Complete building dictionary for " + fileName
     if len(skippedData) > 0:
-        returnString += '(skipped ' + str(len(skippedData)) + ' of ' + str(len(reviewData)) + ' review)'
+        returnString += ' (skipped ' + str(len(skippedData)) + ' of ' + str(len(reviewData)) + ' review)'
     return returnString + '\n'
 
 
@@ -198,87 +239,102 @@ def GetReviewData(workDir):
 
 
     outPut = ''
-    main.ShowTitle('Now dividing reviews (0' + '/' + str(len(targetFileList)) + ')',outPut)
     for file in targetFileList:
+        title = 'Now dividing reviews (' + str(targetFileList.index(file) + 1) + '/' + str(len(targetFileList)) + ')'
         try:
             fileDes = open(workDir + "\\" + file, 'r', encoding="utf-8")
-            outPut += Dividing(FileManager.FileReader(fileDes), file)
         except:
-            failString += 'fail to open ' + workDir + "\\" + file + '\n'
+            outPut += 'fail to open ' + file + '\n' + '\n'
+            main.ShowTitle(title, outPut)
+            continue        
+        
+        outPut += Dividing(FileManager.FileReader(fileDes), file, title, outPut)
 
-        main.ShowTitle('Now dividing reviews (' + str(targetFileList.index(file) + 1) + '/' + str(len(targetFileList)) + ')', outPut)
-
-    return WriteDic(FileManager.RemoveInvaildChar(baseDir + '\\Review\\' + sourceName, True))
+    return WriteDic()
 
     
-def WriteDic(workDir):
+def WriteDic(target=''):
+    global baseDir
     global sourceName
     global wordDic
     global productDic
     global absentDic
-
-    if os.path.isdir(workDir) == False:
-        os.makedirs(workDir)
+    global completeReviewList
 
     timeStamp = str(datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
-    fileName = timeStamp + '.txt'
 
-    for word in wordDic:
-        DirName = FileManager.RemoveInvaildChar(workDir + '\\' + word[0], True)
-        if os.path.isdir(DirName) == False:
-            os.makedirs(DirName)
+    if target == 'Article' or target == '':
+        if os.path.isdir(baseDir + '\\Article\\Product') == False:
+            os.makedirs(baseDir + '\\Article\\Product')
 
-        reviewList = []
-        for review in word[1]:
-            reviewList.append(review)
+        fileName = 'Article-' + timeStamp + '.txt'
 
-        FileManager.FileWriter(DirName + '\\' + fileName, reviewList, 'a')
+        for word in wordDic:
+            DirName = FileManager.RemoveInvaildChar(baseDir + '\\Article\\Product\\' + word[0], True)
+            if os.path.isdir(DirName) == False:
+                os.makedirs(DirName)
+
+            dataList = []
+            for review in word[1]:
+                sourceString = ';'.join(review)
+                dataList.append(sourceString)
+            FileManager.FileWriter(DirName + '\\' + fileName, dataList, 'a')
     
-    if os.path.isdir(baseDir + '\\Dic') == False:
-        os.makedirs(baseDir + '\\Dic')
+    if target == 'Product' or target == '':
+        if os.path.isdir(baseDir + '\\Dic') == False:
+            os.makedirs(baseDir + '\\Dic')
 
-    fileName = 'ProductList-' + timeStamp + '.txt' 
+        fileName = 'ProductList-' + timeStamp + '.txt' 
 
-    currentCarrier = ''
-    dataList = []
-    for dic in productDic:
-        data = ''
-        if dic[0][0] != currentCarrier:
-            for carrier in dic[0]:
-                data = data + '%' + carrier
-            currentCarrier = dic[0][0]
+        productDic = SortProductList()
+
+        currentCarrier = ''
+        dataList = []
+        for dic in productDic:
+            data = ''
+            if dic[0][0] != currentCarrier:
+                for carrier in dic[0]:
+                    data = data + '%' + carrier
+                currentCarrier = dic[0][0]
+                dataList.append(data)
+
+            data = dic[1] + '#' + dic[2] + '#' + ','.join(dic[3]) + '#' + ','.join(dic[4])
+            dataList.append(data)
+            
+        FileManager.FileWriter(baseDir + '\\Dic\\' + fileName, dataList, 'w')
+
+    if target == 'Absent' or target == '':
+        if os.path.isdir(baseDir + '\\Dic') == False:
+            os.makedirs(baseDir + '\\Dic')
+        fileName = 'AbsentList-' + timeStamp + '.txt'
+
+        dataList = []
+        for dic in absentDic:
+            data = dic[0] + '#' + str(dic[1]) + '#' + ','.join(dic[2])
             dataList.append(data)
 
-        data = dic[1] + '#' + dic[2] + '#' + str(dic[3]) + '#' + ','.join(dic[4]) + '#' + ','.join(dic[5])
+        FileManager.FileWriter(baseDir + '\\Dic\\' + fileName, dataList, 'w')
+
+    if target == 'Divide' or target == '':
+        fileName = 'DividList-' + timeStamp + '.txt'
+
+        dataList = []
+        for dic in dividDic:
+            data = dic[0] + '#' + str(dic[1]) + '#' + ','.join(dic[2])
+            dataList.append(data)
+
+        FileManager.FileWriter(baseDir + '\\Dic\\' + fileName, dataList, 'w')
+
+    if target == 'Complete' or target == '':
+        if os.path.isdir(baseDir + '\\Dic') == False:
+            os.makedirs(baseDir + '\\Dic')
+        fileName = 'ReviewCompleteList-' + timeStamp + '.txt'
+
+        dataList = []
+        data = ':'.join(completeReviewList)
         dataList.append(data)
-        
-    FileManager.FileWriter(baseDir + '\\Dic\\' + fileName, dataList, 'w')
 
-    fileName = 'AbsentList-' + sourceName + '-' + timeStamp + '.txt'
-
-    dataList = []
-    for dic in absentDic:
-        data = dic[0] + '#' + str(dic[1]) + '#' + ','.join(dic[2])
-        dataList.append(data)
-
-    FileManager.FileWriter(baseDir + '\\Dic\\' + fileName, dataList, 'w')
-
-    fileName = 'DividList-' + sourceName + '-' + timeStamp + '.txt'
-
-    dataList = []
-    for dic in dividDic:
-        data = dic[0] + '#' + str(dic[1]) + '#' + ','.join(dic[2])
-        dataList.append(data)
-
-    FileManager.FileWriter(baseDir + '\\Dic\\' + fileName, dataList, 'w')
-
-    fileName = 'CompleteList-' + sourceName + '-' + timeStamp + '.txt'
-
-    dataList = []
-    data = ':'.join(completeReviewList)
-    dataList.append(data)
-
-    FileManager.FileWriter(baseDir + '\\Dic\\' + fileName, dataList, 'w')
+        FileManager.FileWriter(baseDir + '\\Dic\\' + fileName, dataList, 'w')
 
 
 def GetProductDic():
@@ -286,11 +342,15 @@ def GetProductDic():
     global absentDic
     global dividDic
     global completeReviewList
+    global sourceName
 
     productDic = []
     absentDic = []
     dividDic = []
     completeReviewList = []
+
+    if os.path.isdir(baseDir + '\\Dic') == False:
+        os.makedirs(baseDir + '\\Dic')
 
     targetFileList = []
     fileList = os.listdir(baseDir + '\\Dic')
@@ -318,11 +378,9 @@ def GetProductDic():
             newProduct.append(productName)
             productCat = splitData[1]
             newProduct.append(productCat)
-            productCount = int(splitData[2])
-            newProduct.append(productCount)
-            productMainDiscriptionList = splitData[3].split(',')
+            productMainDiscriptionList = splitData[2].split(',')
             newProduct.append(productMainDiscriptionList)
-            productSubDiscriptionList = splitData[4].split(',')
+            productSubDiscriptionList = splitData[3].split(',')
             newProduct.append(productSubDiscriptionList)
 
             productDic.append(newProduct)
@@ -372,7 +430,7 @@ def GetProductDic():
     targetFileList = []
     fileList = os.listdir(baseDir + '\\Dic')
     for file in fileList:
-        if file.__contains__('CompleteList'):
+        if file.__contains__('ReviewCompleteList'):
             targetFileList.append(baseDir + '\\Dic\\'+ file)
 
     if len(targetFileList) > 0:
@@ -381,25 +439,274 @@ def GetProductDic():
         completeReviewList = readData[0].split(':')
 
 
-def GetExistDicInfo():
-    global productDic
-    global absentDic
-    global dividDic
-    global completeReviewList
+def GetProductCategoryList():
+    resultList = []
 
+    for dic in productDic:
+        if resultList.__contains__(dic[2]) == False:
+            resultList.append(dic[2])
+
+    return resultList
+
+
+def GetProductCarrierList(targetIndex=0):
+    resultList = []
+
+    for dic in productDic:
+        if targetIndex == -1:
+            Carrier = dic[0]
+        else:
+            Carrier = dic[0][targetIndex]
+        if resultList.__contains__(Carrier) == False:
+            resultList.append(Carrier)
+
+    return resultList
+
+
+def ManageProduct(title='', outPut=''):
     GetProductDic()
 
-    if len(completeReviewList) <= 0:
-        return None
-    
-    result = []
+    while True:
+        main.ShowTitle(title, outPut)
 
-    result.append(productDic)
-    result.append(absentDic)
-    result.append(dividDic)
-    result.append(completeReviewList)
+        productName = input('Enter product name (%q to back): ')
 
-    return result
+        if productName == '%q':
+            return ''
+
+        while True:
+            productList = GetProductName(productName)
+            main.ShowTitle('Data for ' + productName + '\n' + outPut, title)
+            number = 1
+            for product in productList:
+                print(str(number) + '. Modify ' + product)
+                number += 1
+            print('')
+            print('a. Add new product (' + productName + ')')
+            print('r. Re-enter name')
+            print('b. Back')
+            inputValue = input('=> ')
+
+            targetIndex = -1
+            try:
+                targetIndex = int(inputValue)
+            except:
+                if inputValue == 'r':
+                    outPut = ''
+                    break
+                elif inputValue == 'b':
+                    return ''
+                elif inputValue == 'a':
+                    outPut = ''
+                    outPutWork = 'Add new product (' + productName + ')'
+                else:
+                    outPut = 'Please enter correct number or charactor'
+                    continue
+
+            if targetIndex != -1:
+                productPureName = productList[targetIndex - 1].split(' ')
+                productPureName.pop(0)
+                productPureName = ' '.join(productPureName)
+                targetIndex = GetProductName().index(productPureName)
+                while True:
+                    main.ShowTitle(title, outPut)
+                    print('1. Modify\n2. Delete')
+                    modeInput = input('=> ')
+                    
+                    if modeInput == '1':
+                        outPut = ''
+                        outPutWork = 'Modify ' + productPureName
+                        break
+                    elif modeInput == '2':
+                        ProductDictionaryRemove(targetIndex)
+                        break
+
+            outPutState = ''
+            proceed = True
+            name = ''
+            propertyList = ['', []]
+            DiscriptionList = []
+            if inputValue != 'a':
+                outPutState = '/ Name'
+                main.ShowTitle(outPutWork + outPutState + '\n' + outPut, title)
+                nameInputValue = input('Enter product name (%q to cancel add / %s to skip):')
+                if nameInputValue == '%q':
+                    proceed == False
+                    outPut = ''
+                elif nameInputValue == '%s':
+                    name = ''
+                    outPut = ''
+                else:
+                    name = nameInputValue
+                    outPut = ''
+            else:
+                name = productName
+                outPut = ''
+
+            if proceed == False:
+                continue
+
+            for i in range(0, 2):
+                stateString = [' / Carrier', ' / Category']
+                targetString = ['carrier', 'category']
+                dataList = []
+                if i == 0:
+                    dataList = GetProductCarrierList(-1)
+                else:
+                    dataList = GetProductCategoryList()
+                while True:
+                    main.ShowTitle(outPutWork + stateString[i] + '\n' + outPut, title)
+                    number = 1
+                    for propertyName in dataList:
+                        print(str(number) + '. ', end='')
+                        print(propertyName)
+                        number += 1
+                    print('')
+                    if inputValue != 'a':
+                        print('s. Skip')
+                    if i == 1:
+                        print('a. Add new ' + targetString[i])
+                    print('b. Cancel add')
+                    propertyInputValue = input('=> ')
+
+                    if propertyInputValue == 'b':
+                        proceed = False
+                        outPut = ''
+                        break
+                    elif propertyInputValue == 's':
+                        if inputValue != 'a':
+                            propertyList[i] = ''
+                            outPut = ''
+                            break
+                        else:
+                            outPut = 'Please input without %'
+                            continue
+                    elif propertyInputValue == 'a':
+                        if i == 0:
+                            outPut = 'Please enter correct number or charactor'
+                            continue
+                        main.ShowTitle(outPutWork + outPutState + '\n' + outPut, title)
+                        print('Enter' + targetString[i] + '!NO SPACE ENTER! (%q to cancel add', end='')
+                        if inputValue != 'a':
+                            print(' / %s to skip', end='')
+                        propertyInputValue = input('): ')
+
+                        if propertyInputValue == '%q':
+                            outPut = ''
+                            proceed = False
+                            break
+                        elif propertyInputValue == '%s':
+                            if inputValue != 'a':
+                                outPut = ''
+                                propertyList[i] = ''
+                                break
+                            else:
+                                outPut = 'Please input without %'
+                                continue
+
+                        propertyList[i] = propertyInputValue.replace(' ', '')
+                    else:
+                        try:
+                            propertyIndex = int(propertyInputValue)
+                        except:
+                            outPut = 'Please enter correct number or charactor'
+                            continue
+
+                        propertyList[i] = dataList[propertyIndex - 1]
+                        outPut = ''
+                        break
+
+                if proceed == False:
+                    continue
+                
+            if proceed == False:
+                continue
+
+            for i in range(0,2):
+                stateString = [' / Main discription', ' / Sub discription']
+                targetString = ['main discription', 'sub discription']
+                newList = []
+                while True:
+                    listString = ' data: ' + ', '.join(newList)
+                    if inputValue != 'a':
+                        listString += '(prev data: ' + ', '.join(productDic[targetIndex][i+3]) + ')'
+                    main.ShowTitle(outPutWork + stateString[i] + listString + '\n' + outPut, title)
+                    print('Enter ' + targetString[i] + ' !NO SPACE ENTER! (%q to cancel add / %f to finish add', end='')
+                    if inputValue != 'a':
+                        print(' / %s to skip', end='')
+                    discriptionInputValue = input('): ')
+
+                    if discriptionInputValue == '%q':
+                        proceed == False
+                        outPut = ''
+                        break
+                    elif discriptionInputValue == '%f':
+                        outPut = ''
+                        break
+                    elif discriptionInputValue == '%s':
+                        if inputValue != 'a':
+                            newList = None
+                            outPut = ''
+                            break
+                        else:
+                            outPut = 'Please input without %'
+                            continue
+                    
+                    newList.append(discriptionInputValue)
+                    outPut = ''
+
+                if proceed == False:
+                    break
+
+                DiscriptionList.append(newList)
+
+            if proceed:
+                if inputValue == 'a':
+                    ProductDictionaryAppend(name, propertyList[0], propertyList[1], DiscriptionList[0], DiscriptionList[1])
+                else:
+                    ProductDictionaryModify(targetIndex, name, propertyList[0], propertyList[1], DiscriptionList[0], DiscriptionList[1])
+
+
+def ProductDictionaryAppend(name, carrier, category, mainDiscriptionList, subDiscriptionList=[]):
+    GetProductDic()
+
+    newProduct = []
+    newProduct.append(carrier)
+    newProduct.append(name)
+    newProduct.append(category)
+    newProduct.append(mainDiscriptionList)
+    newProduct.append(subDiscriptionList)
+
+    productDic.append(newProduct)
+
+    WriteDic('Product')
+
+
+def ProductDictionaryModify(index, name='', carrier='', category='', mainDiscription=None, subDiscription=None):
+    GetProductDic()
+
+    targetDic = productDic[index]
+
+    if carrier != '':
+        targetDic[0] = carrier
+    if name != '':
+        targetDic[1] = name
+    if category != '':
+        targetDic[2] = category
+    if mainDiscription != None:
+        targetDic[3] = mainDiscription
+    if subDiscription != None:
+        targetDic[4] = subDiscription
+
+    WriteDic('Product')
+
+
+def ProductDictionaryRemove(index):
+    GetProductDic()
+
+    productDic.pop(index)
+
+    WriteDic('Product')
 
 
 def Proceed():

@@ -1,20 +1,20 @@
 import MeCab
 
-def DoNLP(rawData, targetTag='None'):
+def DoNLP(rawData, targetTag='None', Mode='Review'):
     words = rawData.split(' ')
     for word in words:
-        if word.__contains__('@') == True or words.__contains__('http') == True:
+        if word.__contains__('@') == True or word.__contains__('http') == True:
             words.remove(word)
 
     rawData = ''
     for word in words:
         rawData = rawData + word + ' '
 
-    exceptTag = ['NNB', 'VCP', 'VCN', 'XPN', 'XSN', 'XSV', 'XSA', 'MAG', 'MAJ', 'IC', 'JKS',
-                'JKC', 'JKG', 'JKO', 'JKB', 'JKM', 'JKI', 'JKQ', 'JC', 'JX', 'ETM', 'ETN', 
-                'EP', 'EF', 'EC', 'VX', 'SF', 'SE', 'SSO', 'SSC', 'SY', 'SN', 'UNKNOWN']
+    exceptTag = ['NNB', 'VCP', 'VCN', 'XSN', 'XSV', 'XSA', 'MAG', 'MAJ', 'IC', 'JKS',
+                    'JKC', 'JKG', 'JKO', 'JKB', 'JKM', 'JKI', 'JKQ', 'JC', 'JX', 'ETM', 'ETN', 
+                    'EP', 'EF', 'EC', 'VX', 'SC', 'SF', 'SE', 'SSO', 'SSC', 'SY', 'SN', 'UNKNOWN']
     connectTag = ['NNG', 'NNP', 'SL', 'SN', 'SY']
-    exceptSymbal = ['-', '/', '.']
+    exceptSymbal = ['.', '+']
     resultString = []
     tagedData = MeCab.Tagger().parse(rawData)
 
@@ -37,6 +37,13 @@ def DoNLP(rawData, targetTag='None'):
         firstTag = tagDetail[5]
         expression = tagDetail[7]
 
+        if tag == 'MAG':
+            if tagDetail[1] == '*':
+                continue
+            MAGtype = tagDetail[1].split('|')[1]
+            if MAGtype != '부정부사':
+                continue
+
         if tagType == 'Inflect':
             word = expression.split('/')[0]
             tag = firstTag
@@ -46,13 +53,37 @@ def DoNLP(rawData, targetTag='None'):
 
         dataList.append(dataSet)
 
-        index = 0
-
+    index = 0
     while True:
         if index >= len(dataList):
             break
 
         data = dataList[index]
+
+        if Mode == 'Review':
+            if data[1] == 'EC':
+                if index - 1 >= 0 and index + 1 < len(dataList):
+                    if dataList[index + 1][1][0] == 'V':
+                        if dataList[index + 1][1] == 'VV':
+                            index += 1
+                            continue
+                        if dataList[index - 1][0][len(dataList[index - 1][0]) - 1] == '다':
+                            dataList[index - 1][0] = dataList[index - 1][0][:len(dataList[index - 1][0]) - 1]
+                        dataList[index - 1][0] = dataList[index - 1][0] + data[0] + ' ' + dataList[index + 1][0]
+                        dataList.pop(index + 1)
+                        dataList.pop(index)
+                        if dataList[index - 1][1][0] == 'V':
+                            dataList[index - 1][0] = dataList[index - 1][0] + '다'
+                        continue
+
+            if data[1] == 'MM':
+                if index + 1 < len(dataList):
+                    if dataList[index + 1][1][0] == 'N':
+                        data[0] = data[0] + dataList[index + 1][0]
+                        data[1] = dataList[index + 1][1]
+                        dataList.pop(index + 1)
+                        index += 1
+                        continue
 
         if data[1] == 'SN' or data[1] == 'NR':
             if index + 1 < len(dataList):
@@ -69,7 +100,6 @@ def DoNLP(rawData, targetTag='None'):
                                 dataList[targetIndex][0] = dataList[targetIndex][0] + data[0]
                                 dataList.pop(index)
                                 continue
-                            
                     index += 1
                     continue
 
@@ -127,6 +157,16 @@ def DoNLP(rawData, targetTag='None'):
             data[0] = data[0] + '다'
             index += 1
             continue
+
+        if data[1] == 'MAG':
+            if index + 1 < len(dataList):
+                data[0] = data[0] + dataList[index + 1][0]
+                data[1] = dataList[index + 1][1]
+                if data[1][0] == 'V':
+                    data[0] = data[0] + '다'
+                dataList.pop(index + 1)
+                index += 1
+                continue
 
         if data[1] == 'XPN':
             if index + 1 < len(dataList):
