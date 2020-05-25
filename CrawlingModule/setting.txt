@@ -1,0 +1,11 @@
+https://news.joins.com/article/
+
+23727259
+-1
+0,h1,class,headline mg	0,div,id,article_body.*
+1,<!--,-->
+words
+40011
+100000
+100
+q
