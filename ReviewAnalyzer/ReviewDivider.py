@@ -1,4 +1,5 @@
 import FileManager
+import DataBaseManager
 import DictionaryBuilder
 import NLP
 import os
@@ -85,7 +86,7 @@ def GetProductName(mainData='', subData=''):
                 targetIndex += 1
 
         for product in discriptedProductList:
-            resultList.append(product[0][0] + ' ' + product[1])
+            resultList.append(product[1])
     else:
         if len(productList) > 0:
             for selectedProduct in productList:
@@ -99,35 +100,36 @@ def GetProductName(mainData='', subData=''):
                     isCorrect = True
                 
                 if isCorrect:
-                    resultList.append(selectedProduct[0][0] + ' ' + selectedProduct[1])
+                    resultList.append(selectedProduct[1])
 
     return resultList
 
-
 def Dividing(reviewData, fileName, title='', outPut=''):
-    global wordDic
     global absentDic
-    global dividDic
-    global productDic
 
-    skippedData = []
-    index = 1
+    DataBaseManager.Connect()
+
+    updateQuery = ''
+    insertQuery = ''
+
+    completeIndex = 0
+    skippedIndex = 0
     updateTime = int(str(datetime.datetime.now().strftime('%Y%m%d%H%M%S')))
 
-    main.ShowTitle(title, outPut + 'Building dictionary for ' + fileName + ' (' + str(index) + '/' +  str(len(reviewData)) + ')')
+    main.ShowTitle(title, outPut + 'Building dictionary for ' + fileName + ' (' + str(completeIndex) + '/' +  str(len(reviewData)) + ')')
     for data in reviewData:
         currentTime = int(str(datetime.datetime.now().strftime('%Y%m%d%H%M%S')))
         if updateTime < currentTime:
             updateTime = currentTime
-            main.ShowTitle(title, outPut + 'Building dictionary for ' + fileName + ' (' + str(index) + '/' +  str(len(reviewData)) + ')')
+            main.ShowTitle(title, outPut + 'Building dictionary for ' + fileName + ' (' + str(completeIndex + skippedIndex) + '/' +  str(len(reviewData)) + ')')
 
         splitData = data.split(',')
         if len(splitData) < 2:
             return 'No data in ' + fileName
 
         reviewNumber = fileName + '-' + splitData[0]
-        if completeReviewList.__contains__(reviewNumber):
-            skippedData.append(reviewNumber)
+        if len(DataBaseManager.DoSQL('SELECT * FROM review WHERE Review_Number = "' + reviewNumber + '"')) != 0:
+            skippedIndex += 1
             continue
 
         splitData.remove(splitData[0])
@@ -144,10 +146,10 @@ def Dividing(reviewData, fileName, title='', outPut=''):
         resultList = GetProductName(reviewTitleString, reviewString)
         
         if len(resultList) <= 0:
-            resultList = NLP.DoNLP(reviewTitleString, 'NNP')
+            wordList = NLP.DoNLP(reviewTitleString, 'NNP')
 
             nnpList = []
-            for nnp in resultList:
+            for nnp in wordList:
                 if nnpList.__contains__(nnp) == False:
                     nnpList.append(nnp)
 
@@ -171,56 +173,22 @@ def Dividing(reviewData, fileName, title='', outPut=''):
                 newDic.append(reviewList)
                 absentDic.append(newDic)
         else:
-            wordList = NLP.DoNLP(reviewString)
-            nnpList = []
-            for nnp in resultList:
-                if nnpList.__contains__(nnp) == False:
-                    nnpList.append(nnp)
+            resultString = '#'.join(NLP.DoNLP(reviewString))
+            for name in resultList:
+                updateQuery += 'UPDATE product_dic SET Count = Count + 1 WHERE Name = "' + name + '";'
+                productID = DataBaseManager.DoSQL('SELECT Product_ID FROM product_dic WHERE Name = "' + name + '"')[0][0]
+                insertQuery += 'INSERT INTO review (Review_Number, Review, Product_ID) VALUES ("' + reviewNumber + '", "' + resultString + '", ' + str(productID) + ');'
 
-            for nnp in nnpList:
-                existWord = False
-                for word in wordDic:
-                    if nnp == word[0]:
-                        word[1].append(wordList)
-                        existWord = True
-                        break
-                    
-                if existWord:
-                    continue
+        completeIndex += 1
 
-                newDic = []
-                reviewList = []
-                newDic.append(nnp)
-                reviewList.append(wordList)
-                newDic.append(reviewList)
-                wordDic.append(newDic)
-
-            for nnp in nnpList:
-                existWord = False
-                for word in dividDic:
-                    if nnp == word[0]:
-                        word[1] += 1
-                        word[2].append(reviewNumber)
-                        existWord = True
-                        continue
-
-                if existWord:
-                    continue
-
-                newDic = []
-                reviewList = []
-                newDic.append(nnp)
-                newDic.append(1)
-                reviewList.append(reviewNumber)
-                newDic.append(reviewList)
-                dividDic.append(newDic)
-
-        index += 1
-        completeReviewList.append(reviewNumber)
+    if updateQuery != '':
+        DataBaseManager.DoSQL(updateQuery)
+    if insertQuery != '':
+        DataBaseManager.DoSQL(insertQuery)
 
     returnString = "Complete building dictionary for " + fileName
-    if len(skippedData) > 0:
-        returnString += ' (skipped ' + str(len(skippedData)) + ' of ' + str(len(reviewData)) + ' review)'
+    if skippedIndex > 0:
+        returnString += ' (skipped ' + str(skippedIndex) + ' of ' + str(len(reviewData)) + ' review)'
     return returnString + '\n'
 
 
@@ -263,45 +231,45 @@ def WriteDic(target=''):
 
     timeStamp = str(datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
 
-    if target == 'Article' or target == '':
-        if os.path.isdir(baseDir + '\\Article\\Product') == False:
-            os.makedirs(baseDir + '\\Article\\Product')
+    # if target == 'Article' or target == '':
+    #     if os.path.isdir(baseDir + '\\Article\\Product') == False:
+    #         os.makedirs(baseDir + '\\Article\\Product')
 
-        fileName = 'Article-' + timeStamp + '.txt'
+    #     fileName = 'Article-' + timeStamp + '.txt'
 
-        for word in wordDic:
-            DirName = FileManager.RemoveInvaildChar(baseDir + '\\Article\\Product\\' + word[0], True)
-            if os.path.isdir(DirName) == False:
-                os.makedirs(DirName)
+    #     for word in wordDic:
+    #         DirName = FileManager.RemoveInvaildChar(baseDir + '\\Article\\Product\\' + word[0], True)
+    #         if os.path.isdir(DirName) == False:
+    #             os.makedirs(DirName)
 
-            dataList = []
-            for review in word[1]:
-                sourceString = ';'.join(review)
-                dataList.append(sourceString)
-            FileManager.FileWriter(DirName + '\\' + fileName, dataList, 'a')
+    #         dataList = []
+    #         for review in word[1]:
+    #             sourceString = ';'.join(review)
+    #             dataList.append(sourceString)
+    #         FileManager.FileWriter(DirName + '\\' + fileName, dataList, 'a')
     
-    if target == 'Product' or target == '':
-        if os.path.isdir(baseDir + '\\Dic') == False:
-            os.makedirs(baseDir + '\\Dic')
+    # if target == 'Product' or target == '':
+    #     if os.path.isdir(baseDir + '\\Dic') == False:
+    #         os.makedirs(baseDir + '\\Dic')
 
-        fileName = 'ProductList-' + timeStamp + '.txt' 
+    #     fileName = 'ProductList-' + timeStamp + '.txt' 
 
-        productDic = SortProductList()
+    #     productDic = SortProductList()
 
-        currentCarrier = ''
-        dataList = []
-        for dic in productDic:
-            data = ''
-            if dic[0][0] != currentCarrier:
-                for carrier in dic[0]:
-                    data = data + '%' + carrier
-                currentCarrier = dic[0][0]
-                dataList.append(data)
+    #     currentCarrier = ''
+    #     dataList = []
+    #     for dic in productDic:
+    #         data = ''
+    #         if dic[0][0] != currentCarrier:
+    #             for carrier in dic[0]:
+    #                 data = data + '%' + carrier
+    #             currentCarrier = dic[0][0]
+    #             dataList.append(data)
 
-            data = dic[1] + '#' + dic[2] + '#' + ','.join(dic[3]) + '#' + ','.join(dic[4])
-            dataList.append(data)
+    #         data = dic[1] + '#' + dic[2] + '#' + ','.join(dic[3]) + '#' + ','.join(dic[4])
+    #         dataList.append(data)
             
-        FileManager.FileWriter(baseDir + '\\Dic\\' + fileName, dataList, 'w')
+    #     FileManager.FileWriter(baseDir + '\\Dic\\' + fileName, dataList, 'w')
 
     if target == 'Absent' or target == '':
         if os.path.isdir(baseDir + '\\Dic') == False:
@@ -315,26 +283,26 @@ def WriteDic(target=''):
 
         FileManager.FileWriter(baseDir + '\\Dic\\' + fileName, dataList, 'w')
 
-    if target == 'Divide' or target == '':
-        fileName = 'DividList-' + timeStamp + '.txt'
+    # if target == 'Divide' or target == '':
+    #     fileName = 'DividList-' + timeStamp + '.txt'
 
-        dataList = []
-        for dic in dividDic:
-            data = dic[0] + '#' + str(dic[1]) + '#' + ','.join(dic[2])
-            dataList.append(data)
+    #     dataList = []
+    #     for dic in dividDic:
+    #         data = dic[0] + '#' + str(dic[1]) + '#' + ','.join(dic[2])
+    #         dataList.append(data)
 
-        FileManager.FileWriter(baseDir + '\\Dic\\' + fileName, dataList, 'w')
+    #     FileManager.FileWriter(baseDir + '\\Dic\\' + fileName, dataList, 'w')
 
-    if target == 'Complete' or target == '':
-        if os.path.isdir(baseDir + '\\Dic') == False:
-            os.makedirs(baseDir + '\\Dic')
-        fileName = 'ReviewCompleteList-' + timeStamp + '.txt'
+    # if target == 'Complete' or target == '':
+    #     if os.path.isdir(baseDir + '\\Dic') == False:
+    #         os.makedirs(baseDir + '\\Dic')
+    #     fileName = 'ReviewCompleteList-' + timeStamp + '.txt'
 
-        dataList = []
-        data = ':'.join(completeReviewList)
-        dataList.append(data)
+    #     dataList = []
+    #     data = ':'.join(completeReviewList)
+    #     dataList.append(data)
 
-        FileManager.FileWriter(baseDir + '\\Dic\\' + fileName, dataList, 'w')
+    #     FileManager.FileWriter(baseDir + '\\Dic\\' + fileName, dataList, 'w')
 
 
 def GetProductDic():
@@ -351,39 +319,29 @@ def GetProductDic():
 
     if os.path.isdir(baseDir + '\\Dic') == False:
         os.makedirs(baseDir + '\\Dic')
+    DataBaseManager.Connect()
 
-    targetFileList = []
-    fileList = os.listdir(baseDir + '\\Dic')
-    for file in fileList:
-        if file.__contains__('ProductList'):
-            targetFileList.append(baseDir + '\\Dic\\'+ file)
-
-    if len(targetFileList) > 0:
-        targetFileName = max(targetFileList)
-        readData = FileManager.FileReader(open(targetFileName, 'r', encoding='utf-8'))
+    productList = DataBaseManager.DoSQL('SELECT * FROM product_dic')
+    for data in productList:
         productCarrier = []
-        for data in readData:
-            if data[0]  == '%':
-                productCarrier = []
-                data = data[1:]
-                splitCarrier = data.split('%')
-                for carrier in splitCarrier:
-                    productCarrier.append(carrier)
-                continue
+        productMainDiscriptionList = []
+        productSubDiscriptionList = []
 
-            splitData = data.split('#')
-            newProduct = []
-            newProduct.append(productCarrier)
-            productName = splitData[0]
-            newProduct.append(productName)
-            productCat = splitData[1]
-            newProduct.append(productCat)
-            productMainDiscriptionList = splitData[2].split(',')
-            newProduct.append(productMainDiscriptionList)
-            productSubDiscriptionList = splitData[3].split(',')
-            newProduct.append(productSubDiscriptionList)
+        for result in DataBaseManager.DoSQL('SELECT Word FROM carrier_dic WHERE Carrier_ID = ' + str(data[3])):
+            productCarrier.append(result[0])
+        for result in DataBaseManager.DoSQL('SELECT Word FROM product_discription WHERE Product_ID = ' + str(data[0]) + ' AND Type = 1'):
+            productMainDiscriptionList.append(result[0])
+        for result in DataBaseManager.DoSQL('SELECT Word FROM product_discription WHERE Product_ID = ' + str(data[0]) + ' AND Type = 2'):
+            productSubDiscriptionList.append(result[0])
 
-            productDic.append(newProduct)
+        newProduct = []
+        newProduct.append(productCarrier)
+        newProduct.append(data[1])
+        newProduct.append(data[2])
+        newProduct.append(productMainDiscriptionList)
+        newProduct.append(productSubDiscriptionList)
+
+        productDic.append(newProduct)
 
     targetFileList = []
     fileList = os.listdir(baseDir + '\\Dic')
@@ -406,37 +364,37 @@ def GetProductDic():
 
             absentDic.append(newDic)
 
-    targetFileList = []
-    fileList = os.listdir(baseDir + '\\Dic')
-    for file in fileList:
-        if file.__contains__('DividList'):
-            targetFileList.append(baseDir + '\\Dic\\'+ file)
+    # targetFileList = []
+    # fileList = os.listdir(baseDir + '\\Dic')
+    # for file in fileList:
+    #     if file.__contains__('DividList'):
+    #         targetFileList.append(baseDir + '\\Dic\\'+ file)
 
-    if len(targetFileList) > 0:
-        targetFileName = max(targetFileList)
-        readData = FileManager.FileReader(open(targetFileName, 'r', encoding='utf-8'))
-        for data in readData:
-            splitData = data.split('#')
-            newDic = []
-            NNPName = splitData[0]
-            newDic.append(NNPName)
-            NNPCount = int(splitData[1])
-            newDic.append(NNPCount)
-            ReviewList = splitData[2].split(',')
-            newDic.append(ReviewList)
+    # if len(targetFileList) > 0:
+    #     targetFileName = max(targetFileList)
+    #     readData = FileManager.FileReader(open(targetFileName, 'r', encoding='utf-8'))
+    #     for data in readData:
+    #         splitData = data.split('#')
+    #         newDic = []
+    #         NNPName = splitData[0]
+    #         newDic.append(NNPName)
+    #         NNPCount = int(splitData[1])
+    #         newDic.append(NNPCount)
+    #         ReviewList = splitData[2].split(',')
+    #         newDic.append(ReviewList)
 
-            dividDic.append(newDic) 
+    #         dividDic.append(newDic) 
 
-    targetFileList = []
-    fileList = os.listdir(baseDir + '\\Dic')
-    for file in fileList:
-        if file.__contains__('ReviewCompleteList'):
-            targetFileList.append(baseDir + '\\Dic\\'+ file)
+    # targetFileList = []
+    # fileList = os.listdir(baseDir + '\\Dic')
+    # for file in fileList:
+    #     if file.__contains__('ReviewCompleteList'):
+    #         targetFileList.append(baseDir + '\\Dic\\'+ file)
 
-    if len(targetFileList) > 0:
-        targetFileName = max(targetFileList)
-        readData = FileManager.FileReader(open(targetFileName, 'r', encoding='utf-8'))
-        completeReviewList = readData[0].split(':')
+    # if len(targetFileList) > 0:
+    #     targetFileName = max(targetFileList)
+    #     readData = FileManager.FileReader(open(targetFileName, 'r', encoding='utf-8'))
+    #     completeReviewList = readData[0].split(':')
 
 
 def GetProductCategoryList():
