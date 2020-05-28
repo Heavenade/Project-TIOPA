@@ -115,6 +115,9 @@ def Dividing(reviewData, fileName, title='', outPut=''):
     completeIndex = 0
     skippedIndex = 0
     updateTime = int(str(datetime.datetime.now().strftime('%Y%m%d%H%M%S')))
+    completedReview = []
+    for data in DataBaseManager.DoSQL('SELECT Review_Number FROM review'):
+        completedReview.append(data[0])
 
     main.ShowTitle(title, outPut + 'Building dictionary for ' + fileName + ' (' + str(completeIndex) + '/' +  str(len(reviewData)) + ')')
     for data in reviewData:
@@ -128,7 +131,7 @@ def Dividing(reviewData, fileName, title='', outPut=''):
             return 'No data in ' + fileName
 
         reviewNumber = fileName + '-' + splitData[0]
-        if len(DataBaseManager.DoSQL('SELECT * FROM review WHERE Review_Number = "' + reviewNumber + '"')) != 0:
+        if completedReview.__contains__(reviewNumber):
             skippedIndex += 1
             continue
 
