@@ -116,7 +116,7 @@ def Dividing(reviewData, fileName, title='', outPut=''):
     skippedIndex = 0
     updateTime = int(str(datetime.datetime.now().strftime('%Y%m%d%H%M%S')))
     completedReview = []
-    for data in DataBaseManager.DoSQL('SELECT Review_Number FROM review'):
+    for data in DataBaseManager.DoSQL('SELECT Article_Number FROM article_dic'):
         completedReview.append(data[0])
 
     main.ShowTitle(title, outPut + 'Building dictionary for ' + fileName + ' (' + str(completeIndex) + '/' +  str(len(reviewData)) + ')')
@@ -131,10 +131,6 @@ def Dividing(reviewData, fileName, title='', outPut=''):
             return 'No data in ' + fileName
 
         reviewNumber = fileName + '-' + splitData[0]
-        if completedReview.__contains__(reviewNumber):
-            skippedIndex += 1
-            continue
-
         splitData.remove(splitData[0])
         reviewTitleString = splitData[0]
         splitData.remove(splitData[0])
@@ -142,6 +138,10 @@ def Dividing(reviewData, fileName, title='', outPut=''):
         reviewString = reviewString.replace('\n', '')
         reviewString = reviewString.replace(';', ',')
         resultList = []
+
+        if completedReview.__contains__(reviewNumber):
+            skippedIndex += 1
+            continue
 
         if reviewTitleString == '!e':
             continue
@@ -180,7 +180,10 @@ def Dividing(reviewData, fileName, title='', outPut=''):
             for name in resultList:
                 updateQuery += 'UPDATE product_dic SET Count = Count + 1 WHERE Name = "' + name + '";'
                 productID = DataBaseManager.DoSQL('SELECT Product_ID FROM product_dic WHERE Name = "' + name + '"')[0][0]
-                insertQuery += 'INSERT INTO review (Review_Number, Review, Product_ID) VALUES ("' + reviewNumber + '", "' + resultString + '", ' + str(productID) + ');'
+                insertQuery += 'INSERT INTO review_dic (Review_Number, Review, Product_ID) VALUES ("' + reviewNumber + '", "' + resultString + '", ' + str(productID) + ');'
+
+        resultString = '#'.join(NLP.DoNLP(reviewString))
+        insertQuery += 'INSERT INTO article_dic (Article_Number, Article) VALUES ("' + reviewNumber + '", "' + resultString + '");'
 
         completeIndex += 1
 
@@ -323,28 +326,52 @@ def GetProductDic():
     if os.path.isdir(baseDir + '\\Dic') == False:
         os.makedirs(baseDir + '\\Dic')
     DataBaseManager.Connect()
-
-    productList = DataBaseManager.DoSQL('SELECT * FROM product_dic')
+    
+    carrierAliasList = []
+    productList = DataBaseManager.DoSQL("""
+            SELECT
+                product_dic.Product_ID,
+                product_dic.Carrier_ID,
+                product_dic.Product_Name,
+                product_dic.Category_ID,
+                product_discription.Discription,
+                product_discription.Type
+            FROM
+                product_dic
+            LEFT JOIN product_discription
+            ON product_dic.Product_ID = product_discription.Product_ID
+            """)
+    currentProductID = -1
+    currentCarrierID = -1
+    currentIndex = -1
     for data in productList:
-        productCarrier = []
-        productMainDiscriptionList = []
-        productSubDiscriptionList = []
+        if data[1] != currentCarrierID:
+            currentCarrierID = data[1]
+            carrierAliasList = []
+            sqlResult = DataBaseManager.DoSQL("""
+                SELECT
+                    Carrier_Alias
+                FROM
+                    carrier_dic
+                WHERE carrier_dic.Carrier_ID = """ + str(currentCarrierID) + """
+                """)
+            for result in sqlResult:
+                carrierAliasList.append(result[0])
+        if data[0] != currentProductID:
+            currentProductID = data[0]
+            newProduct = []
+            newProduct.append(carrierAliasList)
+            newProduct.append(data[2])
+            newProduct.append([])
+            newProduct.append([])
 
-        for result in DataBaseManager.DoSQL('SELECT Word FROM carrier_dic WHERE Carrier_ID = ' + str(data[3])):
-            productCarrier.append(result[0])
-        for result in DataBaseManager.DoSQL('SELECT Word FROM product_discription WHERE Product_ID = ' + str(data[0]) + ' AND Type = 1'):
-            productMainDiscriptionList.append(result[0])
-        for result in DataBaseManager.DoSQL('SELECT Word FROM product_discription WHERE Product_ID = ' + str(data[0]) + ' AND Type = 2'):
-            productSubDiscriptionList.append(result[0])
+            productDic.append(newProduct)
+            currentIndex += 1
 
-        newProduct = []
-        newProduct.append(productCarrier)
-        newProduct.append(data[1])
-        newProduct.append(data[2])
-        newProduct.append(productMainDiscriptionList)
-        newProduct.append(productSubDiscriptionList)
-
-        productDic.append(newProduct)
+        if data[5] == 1:
+            productDic[currentIndex][2].append(data[4])
+        else:
+            productDic[currentIndex][3].append(data[4])
 
     targetFileList = []
     fileList = os.listdir(baseDir + '\\Dic')
