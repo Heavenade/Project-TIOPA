@@ -1,0 +1,12 @@
+1
+https://news.joins.com/article/
+
+23726633
+-1
+0,h1,class,headline mg	0,div,id,article_body.*
+1,<!--,-->
+중앙일보
+10006
+1
+100
+q
