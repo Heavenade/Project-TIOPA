@@ -73,7 +73,7 @@ class CSetting:
              self.urlBack = self.DelEnter ( settingFile.readline() )
              self.fileSiteNumber_START = int ( self.DelEnter ( settingFile.readline() ) )
              self.SITE_WAY = int ( self.DelEnter ( settingFile.readline() ) )
-            
+             
              sentence = settingFile.readline().split('\t')
              self.textDataRange = []
              for s in sentence:
@@ -105,7 +105,7 @@ class CSetting:
              self.STOP_KEY = self.DelEnter ( settingFile.readline() ) 
     
              settingFile.close()
-             print("기본 세팅이 존재합니다. ",filePath," 파일을 불러옵니다.") 
+             print("기본 세팅이 존재합니다. ", _filePath," 파일을 불러옵니다.") 
          except:
              print("error:세팅을 불러오던 도중 실수했습니다.")
 
