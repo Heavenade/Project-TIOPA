@@ -39,6 +39,7 @@ def DirSelector(currentPath, outPut='', title=''):
         print(str(index) + ": " + dirName)
         index += 1
 
+    print('')
     print('y: Proceed')
     print('b: Quit selection')
 
