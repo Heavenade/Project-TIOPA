@@ -1,7 +1,7 @@
 <!-- 메인페이지 -->
 <html>
   <head>
-    <title> 시각화모듈 어쩌구 </title>
+    <title> Visualization Module </title>
     <!--Meta -->
     <meta http-equiv="content-type" content = "text/html; charset = UTF-8" />
     <meta name="viewport" content="width=device-width; initial-scale=1">
@@ -9,7 +9,12 @@
     <link rel="stylesheet" href="css/bootstrap.css">
     <!-- 스타일 변경: 왜 부트스트랩에서 안먹힘  -->
     <style>
-      img { max-width: 100%; height: auto; }
+      .img-searchpanel{
+        margin-top: 0; margin-left: 2%; margin-right: 2%; margin-bottom: 0; max-width: 100%; height: auto;
+      }
+      .img-recommend{
+         margin-top: 10%; margin-left: 2%; margin-right: 2%; margin-bottom: 10%; max-width: 100%; height: auto;
+      }
       body{
         background-color: #f2f2f2;
       }
@@ -34,75 +39,95 @@
           color: #ffffff;
       }   
     </style>
-
   </head>
 
-  <body class= "text-center">
+  <body>
+    <!-- php -->
+    <?
+    ini_set("display_errors", 1);
+    header("content-type:text/html; charset=UTF-8");
+    
+    include "lib/db_connect.php";//db연결
+    include ("lib/rcmd_random.php");//recommend random
+
+    //db연결
+    $connect = dbconn();
+    
+    ?>
+
     <!-- Nav 별건 없음 -->
     <nav class="navbar navbar-expand-sm navbar-custom">
     </nav>
     <!-- 컨테이너 -->
     <div class="container-fluid">
-    
-
+      <br><br><br><br><br><br>
       <!-- 검색창을 위한 그리드  -->
-      <div class="row justify-content-md-center">
-        <div class="col-sm-4">
+      <div class="row">
+        <div class="col-lg-3 col-md-1">
         </div>
-        <div class="col-sm-4">
-          <p class="text-center">로고 및 검색창</p>
-          <br><br><br><br>
-          <h1> 로고와 제목<br><br></h1>
-          <h1> 검색창<br><br><br></h1>
+        <div class="col-lg-6 col-md-10">
+          <span class= "text-center"><h1><a><i>Product Image<br> Analysis Service<br></h1></i></a></span>
+          <img src="resources/Search Panel Resize.svg" class="img-searchpanel center-block">
         </div>
-        <div class="col-sm-4">
+        <div class="col-lg-3 col-md-1">
         </div>
       </div>
-
-      
-
-      <!-- 추천 텍스트  -->
-      <p class="text-left">RECOMMENDED PRODUCTS<br></p>
+      <br><br>
+      <hr>
       <!-- 제품 추천을 위한 그리드  -->
-
-      <div class="row">
-        <!-- <div class="clearfix visible-sm-block"></div> -->
-        <div class="col-sm-2">blank</div>
-        <div class="col-sm-8">product lists
+      <div class="row">    
+        <div class="col-sm-2"></div>
+        <div class="col-sm-8">
+          <!-- 추천 텍스트  -->
+          <span style="font-size:24px">
+          RECOMMENDED PRODUCTS
+          </span>
           <br><br>
           <div class="row">
-            <div class="col-sm-2">contents</div>
-            <div class="col-sm-2">contents</div>
-            <div class="col-sm-2">contents</div>
-            <div class="col-sm-2">contents</div>
-            <div class="col-sm-2">contents</div>
-            <div class="col-sm-2">contents</div>
+            <div class="clearfix visible-sm-block"></div>
+            <div class="col-md-2 col-sm-4 col-xs-6">
+              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6">
+              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6">
+              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6">
+              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6">
+              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6">
+              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6">
+              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6">
+              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6">
+              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6">
+              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6">
+              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+            </div>
+            <div class="col-md-2 col-sm-4 col-xs-6">
+              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+            </div>
           </div>
         </div>
-        <div class="col-sm-2">blank</div>
-        <!-- <div class="col-lg-2 col-md-3 col-sm-4">contents</div>
-        <div class="col-lg-2 col-md-3 col-sm-4">contents</div>
-        <div class="col-lg-2 col-md-3 col-sm-4">contents</div>
-        <div class="col-lg-2 col-md-3 col-sm-4">contents</div>
-        <div class="col-lg-2 col-md-3 col-sm-4">contents</div>
-        <div class="col-lg-2 col-md-3 col-sm-4">contents</div>
-        <div class="col-lg-2 col-md-3 col-sm-4">contents</div>
-        <div class="col-lg-2 col-md-3 col-sm-4">contents</div>
-        <div class="col-lg-2 col-md-3 col-sm-4">contents</div>
-        <div class="col-lg-2 col-md-3 col-sm-4">contents</div>
-        <div class="col-lg-2 col-md-3 col-sm-4">contents</div> -->
+        <div class="col-sm-2"></div>
       </div>
-
-      
+      <br>  
     </div>
-    <!-- 데이터 베이스 연결 php -->
-    <?
-    ini_set("display_errors", 1);
-
-    include "lib/db_connect.php";
-    $connect = dbconn();
-    ?>
-
+    
     <!-- js 사용 -->
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script type="text/javascript" src="js/bootstrap.js"></script>
