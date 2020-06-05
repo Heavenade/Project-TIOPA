@@ -4739,6 +4739,10 @@ input[type="button"].btn-block {
   color: #fff;
 }
 
+.navbar-kkr {
+  color: #ee6262;
+}
+
 .card {
   position: relative;
   display: -ms-flexbox;
