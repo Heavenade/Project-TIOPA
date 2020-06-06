@@ -9,11 +9,26 @@
     <link rel="stylesheet" href="css/bootstrap.css">
     <!-- 스타일 변경: 왜 부트스트랩에서 안먹힘  -->
     <style>
+      
       .img-searchpanel{
         margin-top: 0; margin-left: 2%; margin-right: 2%; margin-bottom: 0; max-width: 100%; height: auto;
       }
       .img-recommend{
-         margin-top: 10%; margin-left: 2%; margin-right: 2%; margin-bottom: 10%; max-width: 100%; height: auto;
+        position: relative;
+        
+        margin-top: 10%; margin-left: 2%; margin-right: 2%; margin-bottom: 10%; max-width: 100%; height: auto;
+      }
+      .img-recommend .rcmd-text{
+        position: absolute;
+        top:50%;
+        left:50%;
+        transform: translate(-50%, -50%);
+        text-align: center;
+        z-index:1;
+        font-size:1.3rem;
+        color: white;
+        max-width: 100%;
+        max-height: 100%;
       }
       body{
         background-color: #f2f2f2;
@@ -51,8 +66,10 @@
     include ("lib/rcmd_random.php");//recommend random
 
     //db연결
-    $connect = dbconn();
-    
+    //$connect = dbconn();
+    //rcmd 데이터 랜덤 받기
+    $rcmd_data = rand_rcmd_data();
+
     ?>
 
     <!-- Nav 별건 없음 -->
@@ -86,40 +103,76 @@
           <div class="row">
             <div class="clearfix visible-sm-block"></div>
             <div class="col-md-2 col-sm-4 col-xs-6">
-              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+              <div class ="img-recommend center-block">
+                <img src="<?=$image_string=rand_rcmd_num();?>">
+                <div class="rcmd-text"><span><?=get_rcmd_name(0,$rcmd_data);?></span></div>
+              </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6">
-              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+              <div class ="img-recommend center-block">
+                <img src="<?=$image_string=rand_rcmd_num();?>">
+                <div class="rcmd-text"><span><?=get_rcmd_name(1,$rcmd_data);?></span></div>
+              </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6">
-              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+              <div class ="img-recommend center-block">
+                <img src="<?=$image_string=rand_rcmd_num();?>">
+                <div class="rcmd-text"><span><?=get_rcmd_name(2,$rcmd_data);?></span></div>
+              </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6">
-              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+              <div class ="img-recommend center-block">
+                <img src="<?=$image_string=rand_rcmd_num();?>">
+                <div class="rcmd-text"><span><?=get_rcmd_name(3,$rcmd_data);?></span></div>
+              </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6">
-              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+              <div class ="img-recommend center-block">
+                <img src="<?=$image_string=rand_rcmd_num();?>">
+                <div class="rcmd-text"><span><?=get_rcmd_name(4,$rcmd_data);?></span></div>
+              </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6">
-              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+              <div class ="img-recommend center-block">
+                <img src="<?=$image_string=rand_rcmd_num();?>">
+                <div class="rcmd-text"><span><?=get_rcmd_name(5,$rcmd_data);?></span></div>
+              </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6">
-              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+              <div class ="img-recommend center-block">
+                <img src="<?=$image_string=rand_rcmd_num();?>">
+                <div class="rcmd-text"><span><?=get_rcmd_name(6,$rcmd_data);?></span></div>
+              </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6">
-              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+              <div class ="img-recommend center-block">
+                <img src="<?=$image_string=rand_rcmd_num();?>">
+                <div class="rcmd-text"><span><?=get_rcmd_name(7,$rcmd_data);?></span></div>
+              </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6">
-              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+              <div class ="img-recommend center-block">
+                <img src="<?=$image_string=rand_rcmd_num();?>">
+                <div class="rcmd-text"><span><?=get_rcmd_name(8,$rcmd_data);?></span></div>
+              </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6">
-              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+              <div class ="img-recommend center-block">
+                <img src="<?=$image_string=rand_rcmd_num();?>">
+                <div class="rcmd-text"><span><?=get_rcmd_name(9,$rcmd_data);?></span></div>
+              </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6">
-              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+              <div class ="img-recommend center-block">
+                <img src="<?=$image_string=rand_rcmd_num();?>">
+                <div class="rcmd-text"><span><?=get_rcmd_name(10,$rcmd_data);?></span></div>
+              </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6">
-              <img src="<?=$image_string=rand_rcmd();?>" class="img-recommend center-block">
+              <div class ="img-recommend center-block">
+                <img src="<?=$image_string=rand_rcmd_num();?>">
+                <div class="rcmd-text"><span><?=get_rcmd_name(11,$rcmd_data);?></span></div>
+              </div>
             </div>
           </div>
         </div>
