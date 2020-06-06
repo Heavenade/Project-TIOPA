@@ -8,11 +8,47 @@
     <!-- 부트스트랩 사용 -->
     <link rel="stylesheet" href="css/bootstrap.css">
     <!-- 스타일 변경: 왜 부트스트랩에서 안먹힘  -->
-    <style>
-      
+    <style>   
       .img-searchpanel{
+        position: relative;
         margin-top: 0; margin-left: 2%; margin-right: 2%; margin-bottom: 0; max-width: 100%; height: auto;
       }
+      .img-searchpanel .form-searchpanel{
+        position: absolute;
+        top:50%;
+        left:40%;
+        transform: translate(-40%, -50%);
+        text-align: left;
+        z-index:1;
+        font-size:1.1rem;
+        background-color: transparent;
+        border: 0px;
+        border-color: transparent;
+        box-shadow: transparent;
+        max-width: 75%;
+        max-height: 100%;
+        transition:none;
+      }
+      .form-control:focus {
+        color: #495057;
+        background-color: transparent;
+        border-color: transparent;
+        outline: 0;
+        box-shadow: none;
+      }
+      .img-searchpanel .search-btn{
+        position: absolute;
+        top:50%;
+        left:95%;
+        transform: translate(-95%, -50%);
+        text-align: center;
+        z-index:2;
+        font-size:1.1rem;
+        color: white;
+        max-width: 100%;
+        max-height: 100%;
+      }
+
       .img-recommend{
         position: relative;
         
@@ -29,6 +65,17 @@
         color: white;
         max-width: 100%;
         max-height: 100%;
+      }
+      .img-recommend .rcmd-btn{
+        position: absolute;
+        top:50%;
+        left:50%;
+        transform: translate(-50%, -50%);
+        z-index:2;
+        width: 100%;
+        height: 100%;
+        margin-top: 0%; margin-left: 0%; margin-right: 0%; margin-bottom: 0%;
+        padding-top: 0%; padding-left: 0%; padding-right: 0%; padding-bottom: 0%;
       }
       body{
         background-color: #f2f2f2;
@@ -80,14 +127,18 @@
       <br><br><br><br><br><br>
       <!-- 검색창을 위한 그리드  -->
       <div class="row">
-        <div class="col-lg-3 col-md-1">
-        </div>
+        <div class="col-lg-3 col-md-1"></div>
+        <!-- SearchPanel  -->
         <div class="col-lg-6 col-md-10">
           <span class= "text-center"><h1><a><i>Product Image<br> Analysis Service<br></h1></i></a></span>
-          <img src="resources/Search Panel Resize.svg" class="img-searchpanel center-block">
+          <div class="img-searchpanel center-block">
+            <img src="resources/Search Panel Resize.svg">
+            <input type="search" name="search_word" class="form-control form-searchpanel" value="" placeholder="검색할 제품을 입력하세요.">
+            <button type="button" class="btn btn-primary search-btn">검색</button>
+          </div>
         </div>
-        <div class="col-lg-3 col-md-1">
-        </div>
+
+        <div class="col-lg-3 col-md-1"></div>
       </div>
       <br><br>
       <hr>
@@ -106,60 +157,70 @@
               <div class ="img-recommend center-block">
                 <img src="<?=$image_string=rand_rcmd_num();?>">
                 <div class="rcmd-text"><span><?=get_rcmd_name(0,$rcmd_data);?></span></div>
+                <button type="submit" name = "rcmd_button_1" class="btn rcmd-btn"></button>
               </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6">
               <div class ="img-recommend center-block">
                 <img src="<?=$image_string=rand_rcmd_num();?>">
                 <div class="rcmd-text"><span><?=get_rcmd_name(1,$rcmd_data);?></span></div>
+                <button type="submit" name = "rcmd_button_1" class="btn rcmd-btn"></button>
               </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6">
               <div class ="img-recommend center-block">
                 <img src="<?=$image_string=rand_rcmd_num();?>">
                 <div class="rcmd-text"><span><?=get_rcmd_name(2,$rcmd_data);?></span></div>
+                <button type="submit" name = "rcmd_button_1" class="btn rcmd-btn"></button>
               </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6">
               <div class ="img-recommend center-block">
                 <img src="<?=$image_string=rand_rcmd_num();?>">
                 <div class="rcmd-text"><span><?=get_rcmd_name(3,$rcmd_data);?></span></div>
+                <button type="submit" name = "rcmd_button_1" class="btn rcmd-btn"></button>
               </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6">
               <div class ="img-recommend center-block">
                 <img src="<?=$image_string=rand_rcmd_num();?>">
                 <div class="rcmd-text"><span><?=get_rcmd_name(4,$rcmd_data);?></span></div>
+                <button type="submit" name = "rcmd_button_1" class="btn rcmd-btn"></button>
               </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6">
               <div class ="img-recommend center-block">
                 <img src="<?=$image_string=rand_rcmd_num();?>">
                 <div class="rcmd-text"><span><?=get_rcmd_name(5,$rcmd_data);?></span></div>
+                <button type="submit" name = "rcmd_button_1" class="btn rcmd-btn"></button>
               </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6">
               <div class ="img-recommend center-block">
                 <img src="<?=$image_string=rand_rcmd_num();?>">
                 <div class="rcmd-text"><span><?=get_rcmd_name(6,$rcmd_data);?></span></div>
+                <button type="submit" name = "rcmd_button_1" class="btn rcmd-btn"></button>
               </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6">
               <div class ="img-recommend center-block">
                 <img src="<?=$image_string=rand_rcmd_num();?>">
                 <div class="rcmd-text"><span><?=get_rcmd_name(7,$rcmd_data);?></span></div>
+                <button type="submit" name = "rcmd_button_1" class="btn rcmd-btn"></button>
               </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6">
               <div class ="img-recommend center-block">
                 <img src="<?=$image_string=rand_rcmd_num();?>">
                 <div class="rcmd-text"><span><?=get_rcmd_name(8,$rcmd_data);?></span></div>
+                <button type="submit" name = "rcmd_button_1" class="btn rcmd-btn"></button>
               </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6">
               <div class ="img-recommend center-block">
                 <img src="<?=$image_string=rand_rcmd_num();?>">
                 <div class="rcmd-text"><span><?=get_rcmd_name(9,$rcmd_data);?></span></div>
+                <button type="submit" name = "rcmd_button_1" class="btn rcmd-btn"></button>
               </div>
             </div>
             <div class="col-md-2 col-sm-4 col-xs-6">
@@ -172,6 +233,7 @@
               <div class ="img-recommend center-block">
                 <img src="<?=$image_string=rand_rcmd_num();?>">
                 <div class="rcmd-text"><span><?=get_rcmd_name(11,$rcmd_data);?></span></div>
+                <button type="submit" name = "rcmd_button_1" class="btn rcmd-btn"></button>
               </div>
             </div>
           </div>
