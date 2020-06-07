@@ -3,6 +3,7 @@ import FileManager
 import DataBaseManager
 import ReviewDivider
 import DictionaryBuilder
+import ../BindSentiWords/BindSentiWords
 import NLP
 from gensim.models import FastText
 import datetime
@@ -206,7 +207,10 @@ def UpdateSimilarWordDictionary(title=None, outPut=None):
             wordRelation = {result[0]: newRelation}
         else:
             existRelation.update(newRelation)
-        wordDict.update(newWord)
+            wordRelation = {result[0]: existRelation}
+        wordDict.update(wordRelation)
+
+    
 
 
 def UpdateSimilarityDatabase(target=None, title=None, outPut=None):
