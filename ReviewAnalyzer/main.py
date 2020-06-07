@@ -66,21 +66,14 @@ def ShowSearchResult(targetList, targetIndex, printDataList, outPut='', title=''
                 outPut += printTitleList[i] + ": " + str(targetList[resultIndex][printIndexList[i]]) + '\t'
 
 def NormalWordDictionaryMenu(outPut=''):
-    result = DictionaryBuilder.GetExistDicInfo()
-    if result != None:
-        wordDic = result[0]
-        completeDic = result[1]
-
-        wordCount = 0
-        for dic in wordDic:
-            wordCount += dic[1]
+    
     while True:
         number = 1
         if result == None:
             ShowTitle('No exist Normal word Dictionary\n' + outPut, 'Normal word Dictionary Menu\n')
         else:
             ShowTitle(outPut)
-            print('words: ' + str(len(wordDic)) + ' / total words: ' + str(wordCount) + ' / reviews: ' + str(len(completeDic)))
+            print('words: ' + str(len(wordDic)) + ' / total words: ' + str(wordCount) + ' / articles: ' + str(len(completeDic)))
             print(str(number) + '. Show 20 Most frequent words')
             number += 1
             print(str(number) + '. Search word')

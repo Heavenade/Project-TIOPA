@@ -1,14 +1,26 @@
+# -*- coding: utf-8 -*-
 import MeCab
+import re
 
-def DoNLP(rawData, targetTag='None', Mode='Review'):
+def DoNLP(rawData, targetTag=None, mode=None):
+    if mode == None:
+        mode = 'Word'
+
     words = rawData.split(' ')
     for word in words:
-        if word.__contains__('@') == True or word.__contains__('http') == True:
+        if word.__contains__('@') or word.__contains__('http'):
             words.remove(word)
 
     rawData = ''
     for word in words:
         rawData = rawData + word + ' '
+
+    for symbal in ['"', "'", '(', ')']:
+        rawData = rawData.replace(symbal, ',')
+
+    pattern = ",\s+?,+"
+    repl = ','
+    rawData = re.sub(pattern=pattern, repl=repl, string=rawData)
 
     exceptTag = ['NNB', 'VCP', 'VCN', 'XSN', 'XSV', 'XSA', 'MAG', 'MAJ', 'IC', 'JKS',
                     'JKC', 'JKG', 'JKO', 'JKB', 'JKM', 'JKI', 'JKQ', 'JC', 'JX', 'ETM', 'ETN', 
@@ -17,8 +29,6 @@ def DoNLP(rawData, targetTag='None', Mode='Review'):
     exceptSymbal = ['.', '+']
     resultString = []
     tagedData = MeCab.Tagger().parse(rawData)
-
-    # print(tagedData)
 
     resultData = tagedData.split('\n')
     dataList = []
@@ -39,10 +49,14 @@ def DoNLP(rawData, targetTag='None', Mode='Review'):
 
         if tag == 'MAG':
             if tagDetail[1] == '*':
-                continue
-            MAGtype = tagDetail[1].split('|')[1]
-            if MAGtype != '부정부사':
-                continue
+                tag = 'UNKNOWN'
+            else:
+                MAGtype = tagDetail[1].split('|')[1]
+                if MAGtype != '부정부사':
+                    tag = 'UNKNOWN'
+
+        if tag == 'SY' and word not in exceptSymbal:
+            tag = 'UNKNOWN'
 
         if tagType == 'Inflect':
             word = expression.split('/')[0]
@@ -60,7 +74,7 @@ def DoNLP(rawData, targetTag='None', Mode='Review'):
 
         data = dataList[index]
 
-        if Mode == 'Review':
+        if mode == 'Review':
             if data[1] == 'EC':
                 if index - 1 >= 0 and index + 1 < len(dataList):
                     if dataList[index + 1][1][0] == 'V':
@@ -110,19 +124,7 @@ def DoNLP(rawData, targetTag='None', Mode='Review'):
                     if dataList[index + 1][0] == '.':
                         dataList[index + 1][1] = 'UNKNOWN'
                         index += 2
-                continue
-
-            if data[1] == 'SY':
-                if len(data[0]) > 1:
-                    data[1] = 'UNKNOWN'
-                    index += 1
-                    continue
-                else:
-                    if len(set(data[0]) & set(exceptSymbal)) == 0:
-                        data[1] = 'UNKNOWN'
-                        index += 1
-                        continue
-                    
+                continue                    
 
             if index - 1 >= 0:
                 targetIndex = index - 1
@@ -138,7 +140,11 @@ def DoNLP(rawData, targetTag='None', Mode='Review'):
                             continue
                 if connectTag.__contains__(dataList[targetIndex][1]):
                     if data[1] == 'NNG' or dataList[targetIndex] == 'NNG':
-                        if rawData.__contains__(dataList[targetIndex][0] + data[0]) == False:
+                        if mode == 'Review':
+                            if rawData.__contains__(dataList[targetIndex][0] + data[0]) == False:
+                                index += 1
+                                continue
+                        else:
                             index += 1
                             continue
                     if data[1] == 'SY':
@@ -160,6 +166,9 @@ def DoNLP(rawData, targetTag='None', Mode='Review'):
 
         if data[1] == 'MAG':
             if index + 1 < len(dataList):
+                if dataList[index + 1][1][0] == 'S':
+                    index += 1
+                    continue
                 data[0] = data[0] + dataList[index + 1][0]
                 data[1] = dataList[index + 1][1]
                 if data[1][0] == 'V':
@@ -178,13 +187,17 @@ def DoNLP(rawData, targetTag='None', Mode='Review'):
                     continue
 
         index += 1
-        
+
     for data in dataList:
-        if targetTag == 'None':
+        if targetTag == None:
             if exceptTag.__contains__(data[1]) == False:
                 resultString.append(data[0])
         else:
-            if data[1] == targetTag:
+            if data[1] in targetTag:
                 resultString.append(data[0])
 
     return resultString
+
+if __name__ == '__main__':
+    data =  "" 
+    print(DoNLP(data))
