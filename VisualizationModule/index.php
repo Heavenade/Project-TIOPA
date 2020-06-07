@@ -92,7 +92,7 @@
       }
       .container, .container-fluid {
         position:relative;
-        top:20%;
+        top:2%;
         background: #f2f2f2;
       }
       .navbar-custom {

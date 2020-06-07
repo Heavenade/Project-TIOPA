@@ -11,7 +11,7 @@
     $product_id = NULL;
     $category_name = NULL;
 
-    $hold_text = NULL;
+    $hold_text = NULL;//discription_text를 정제한 텍스트
 
     if($_GET['rcmd_name'] == "" && $_GET['search_text'] != "")
     {
@@ -33,7 +33,7 @@
         $result = mysqli_query($connect,$query);
 
         //카테고리명 받아오기
-        $query = "SELECT `category_name` FROM `category_dic` WHERE `category_name` = '$discription_text'";
+        $query = "SELECT `Category` FROM `category_dic` WHERE `Category` = '$discription_text'";
         $category_result = mysqli_query($connect,$query);
 
         if(mysqli_num_rows($result)>0)//제품이 존재할 경우
@@ -45,10 +45,10 @@
             $row = $result->fetch_row();
             $product_name = (string)$row[0];
         }
-        else if(mysqli_num_rows($category_result)>0)//대분류 카테고리로 존재할 경우
+        else if(mysqli_num_rows($category_result)> 0)//대분류 카테고리로 존재할 경우
         {
             $row = $category_result->fetch_row();
-            $category_name = (string)$row[0];
+            $category_name = (string)$row[0]; 
         }
         else//결과가 존재하지 않을 경우
         {
@@ -87,7 +87,7 @@
             <!-- 제품 정보 -->
             <input type="hidden" name="product_name" value="<?=$product_name?>">
             <input type="hidden" name="product_id" value="<?=$hproduct_idt?>">
-
+        </form>
         <!-- Category_result로 페이지 이동 시 POST -->
         <form id="category_result_submit" style="display: hidden" action="./category_result.php" method="POST">
             <!--사용자 검색어 -->
