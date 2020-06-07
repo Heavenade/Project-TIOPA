@@ -1,9 +1,10 @@
 import pymysql
 from pymysql.constants import CLIENT
-connectedDB = None
+
+maximumQueryStactUnit = 5000
 
 def Connect():
-    global connectedDB
+    print('Database connecting', end='                      \r')
 
     connectedDB = pymysql.connect(
         user='db_capstone',
@@ -17,10 +18,8 @@ def Connect():
     return connectedDB
 
 def GetDB(db=None):
-    global connectedDB
-
     if db == None:
-        targetDB = connectedDB
+        targetDB = Connect()
     else:
         targetDB = db
 
@@ -28,28 +27,28 @@ def GetDB(db=None):
 
 def DoSQL(query, db=None):
     targetDB = GetDB(db)
-        
     cursor = targetDB.cursor()
+        
+    print('Executing query', end='                      \r')
     cursor.execute(query)
-    targetDB.commit()
+    print('Fetching result', end='                      \r')
     result = [list(i) for i in cursor.fetchall()]
+    print('Commiting result', end='                      \r')
+    targetDB.commit()
 
     if query.__contains__('INSERT INTO') or query.__contains__('UPDATE'):
         result = cursor.lastrowid
 
+    cursor.close()
+    targetDB.close()
+    print('Querying finish', end='                      \r')
+
     return result
 
 if __name__ == '__main__':
-    Connect()
-    query = 'SELECT Word FROM carrier_dic WHERE Carrier_ID = 1'
-    # result = DoSQL("SELECT * FROM review")
+    query = '''
 
-    cursor = connectedDB.cursor()
-    cursor.execute(query)
-    connectedDB.commit()
-    result = [list(i) for i in cursor.fetchall()]
-
-    if query.__contains__('INSERT INTO'):
-        result = cursor.lastrowid
+    '''
+    result = DoSQL(query)
 
     print(result)

@@ -12,11 +12,16 @@ sourceName = ''
 wordDic = []
 absentDic = []
 dividDic = []
-productDic = []
+productDic = {}
 completeReviewList = []
 
 
-def SortProductList(targetIndex=1, order='Ascend'):
+def SortProductList(targetIndex=None, order=None):
+    if targetIndex == None:
+        targetIndex = 1
+    if order == None:
+        order = 'Ascend'
+
     carrierList = DictionaryBuilder.SortDic(GetProductCarrierList(0), 0, order)
 
     resultDic = []
@@ -31,83 +36,114 @@ def SortProductList(targetIndex=1, order='Ascend'):
     return resultDic
 
 
-def GetProductName(mainData='', subData=''):
-    resultList = []
+def GetProductName(mainData=None, subData=None):
+    if mainData == None:
+        mainData = ''
+    if subData == None:
+        subData = ''
+
+    GetProductDic()
+
+    resultDict = {'product_Name': []}
     if mainData == '':
-        for dic in productDic:
-            resultList.append(dic[1])
+        for product in productDic.keys():
+            productList = resultDict.get('product_Name')
+            productList.append(product)
+            resultDict.update({'product_Name': productList})
 
-        return resultList
+        return resultDict
 
-    productMainDiscriptionList = []
-    discriptedProductList = []
-    productList = []
-    for product in productDic:
+    productDiscriptionList = [{}, {}]
+    discriptedProductList = {}
+    for key, value in productDic.items():
         didGet = False
-        for mainDiscription in product[3]:
+        for mainDiscription in value.get('mainDiscription'):
             if mainDiscription == '':
                 continue
             if mainData.upper().replace(' ', '').__contains__(mainDiscription):
-                productMainDiscriptionList.append(mainDiscription)
-                discriptedProductList.append(product)
-                didGet = True
+                wordList = mainData.split(' ')
+                if len(DictionaryBuilder.GetSameStringIndex(wordList, mainDiscription)) > 0:    
+                    newDiscription = {mainDiscription: key}
+                    productDiscriptionList[0].update(newDiscription)
+                    didGet = True
                 break
 
         if didGet:
             continue
-        if len(productMainDiscriptionList) > 0:
+        if len(productDiscriptionList[0]) > 0:
             continue
 
-        for subDiscription in product[4]:
-            if subDiscription == '':
-                continue
-            if mainData.upper().replace(' ', '').__contains__(subDiscription):
-                productList.append(product)
-                break            
+        if subData != '':
+            for subDiscription in value.get('subDiscription'):
+                if subDiscription == '':
+                    continue
+                if mainData.upper().replace(' ', '').__contains__(subDiscription):
+                    wordList = mainData.split(' ')
+                    if len(DictionaryBuilder.GetSameStringIndex(wordList, subDiscription)) > 0:
+                        targetProduct = discriptedProductList.get(subDiscription)
+                        if targetProduct != None:
+                            targetProduct = max(targetProduct, key)
+                        else:
+                            targetProduct = key
+                        newDiscription = {subDiscription: targetProduct}
+                        productDiscriptionList[1].update(newDiscription)
+                    break
     
-    if len(productMainDiscriptionList) > 0:
-        discriptionIndex = 0
-        targetIndex = 0
-        while True:
-            if discriptionIndex >= len(productMainDiscriptionList):
-                break
-            if targetIndex >= len(productMainDiscriptionList):
-                discriptionIndex += 1
-                targetIndex = 0
-                continue
-            if discriptionIndex == targetIndex:
-                targetIndex += 1
-                continue
-            
-            if productMainDiscriptionList[discriptionIndex].__contains__(productMainDiscriptionList[targetIndex]):
-                productMainDiscriptionList.pop(targetIndex)
-                discriptedProductList.pop(targetIndex)
-            else:
-                targetIndex += 1
+    for discriptionDict in productDiscriptionList:
+        if len(discriptionDict) > 0:
+            removeList = []
+            for key in discriptionDict.keys():
+                if key in removeList:
+                    continue
+                for targetKey in discriptionDict.keys():
+                    if targetKey in removeList:
+                        continue
+                    if targetKey == key:
+                        continue
+                    if targetKey in key:
+                        removeList.append(targetKey)
+            for key in removeList:
+                discriptionDict.pop(key)
+    
+    if len(productDiscriptionList[0]) > 0:
+        resultDict.update(productDiscriptionList[0])
+        for product in productDiscriptionList[0].values():
+            productList = resultDict.get('product_Name')
+            if product not in productList:
+                productList.append(product)
+                resultDict.update({'product_Name': productList})
 
-        for product in discriptedProductList:
-            resultList.append(product[1])
-    else:
-        if len(productList) > 0:
-            for selectedProduct in productList:
-                if subData != '':
-                    isCorrect = False
-                    for carrier in selectedProduct[0]:
-                        if subData.upper().replace(' ', '').__contains__(carrier.upper().replace(' ', '')):
+    if len(productDiscriptionList[1]) > 0:
+        if subData != '':
+            for key, value in productDiscriptionList[1].items():
+                isCorrect = False
+                for carrier in productDic.get(value).get('carrier'):
+                    if carrier.upper().replace(' ', '') in subData.upper().replace(' ', ''):
+                        wordList = subData.split(' ')
+                        if len(DictionaryBuilder.GetSameStringIndex(wordList, carrier.upper().replace(' ', ''))) > 0:
                             isCorrect = True
-                            break
-                else:
-                    isCorrect = True
-                
+                        break
+                    else:
+                        break
+            
                 if isCorrect:
-                    resultList.append(selectedProduct[1])
+                    resultDict.update(productDiscriptionList[1])
+                    for product in productDiscriptionList[1].values():
+                        productList = resultDict.get('product_Name')
+                        if product not in productList:
+                            productList.append(product)
+                            resultDict.update({'product_Name': productList})
 
-    return resultList
+    return resultDict
 
-def Dividing(reviewData, fileName, title='', outPut=''):
+
+def Dividing(reviewData, fileName, title=None, outPut=None):
     global absentDic
 
-    DataBaseManager.Connect()
+    if title == None:
+        title = ''
+    if outPut == None:
+        outPut = ''
 
     updateQuery = ''
     insertQuery = ''
@@ -133,11 +169,13 @@ def Dividing(reviewData, fileName, title='', outPut=''):
         reviewNumber = fileName + '-' + splitData[0]
         splitData.remove(splitData[0])
         reviewTitleString = splitData[0]
+        reviewTitleString = reviewTitleString.replace('\n', '')
+        reviewTitleString = reviewTitleString.replace(';', ',')
         splitData.remove(splitData[0])
         reviewString = ''.join(splitData)
         reviewString = reviewString.replace('\n', '')
         reviewString = reviewString.replace(';', ',')
-        resultList = []
+        reviewString = DictionaryBuilder.ConvertNormalWord(reviewString, '', 'Product')[0]
 
         if completedReview.__contains__(reviewNumber):
             skippedIndex += 1
@@ -146,7 +184,7 @@ def Dividing(reviewData, fileName, title='', outPut=''):
         if reviewTitleString == '!e':
             continue
 
-        resultList = GetProductName(reviewTitleString, reviewString)
+        resultList = GetProductName(reviewTitleString, reviewString).get('product_Name')
         
         if len(resultList) <= 0:
             wordList = NLP.DoNLP(reviewTitleString, 'NNP')
@@ -182,15 +220,15 @@ def Dividing(reviewData, fileName, title='', outPut=''):
                 productID = DataBaseManager.DoSQL('SELECT Product_ID FROM product_dic WHERE Name = "' + name + '"')[0][0]
                 insertQuery += 'INSERT INTO review_dic (Review_Number, Review, Product_ID) VALUES ("' + reviewNumber + '", "' + resultString + '", ' + str(productID) + ');'
 
-        resultString = '#'.join(NLP.DoNLP(reviewString))
+        resultString = '#'.join(NLP.DoNLP(reviewString, 'None', 'Word'))
         insertQuery += 'INSERT INTO article_dic (Article_Number, Article) VALUES ("' + reviewNumber + '", "' + resultString + '");'
 
         completeIndex += 1
 
-    if updateQuery != '':
-        DataBaseManager.DoSQL(updateQuery)
-    if insertQuery != '':
-        DataBaseManager.DoSQL(insertQuery)
+    # if updateQuery != '':
+    #     DataBaseManager.DoSQL(updateQuery)
+    # if insertQuery != '':
+    #     DataBaseManager.DoSQL(insertQuery)
 
     returnString = "Complete building dictionary for " + fileName
     if skippedIndex > 0:
@@ -227,55 +265,15 @@ def GetReviewData(workDir):
     return WriteDic()
 
     
-def WriteDic(target=''):
+def WriteDic(target=None):
     global baseDir
     global sourceName
-    global wordDic
-    global productDic
     global absentDic
-    global completeReviewList
+
+    if target == None:
+        target = ''
 
     timeStamp = str(datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
-
-    # if target == 'Article' or target == '':
-    #     if os.path.isdir(baseDir + '\\Article\\Product') == False:
-    #         os.makedirs(baseDir + '\\Article\\Product')
-
-    #     fileName = 'Article-' + timeStamp + '.txt'
-
-    #     for word in wordDic:
-    #         DirName = FileManager.RemoveInvaildChar(baseDir + '\\Article\\Product\\' + word[0], True)
-    #         if os.path.isdir(DirName) == False:
-    #             os.makedirs(DirName)
-
-    #         dataList = []
-    #         for review in word[1]:
-    #             sourceString = ';'.join(review)
-    #             dataList.append(sourceString)
-    #         FileManager.FileWriter(DirName + '\\' + fileName, dataList, 'a')
-    
-    # if target == 'Product' or target == '':
-    #     if os.path.isdir(baseDir + '\\Dic') == False:
-    #         os.makedirs(baseDir + '\\Dic')
-
-    #     fileName = 'ProductList-' + timeStamp + '.txt' 
-
-    #     productDic = SortProductList()
-
-    #     currentCarrier = ''
-    #     dataList = []
-    #     for dic in productDic:
-    #         data = ''
-    #         if dic[0][0] != currentCarrier:
-    #             for carrier in dic[0]:
-    #                 data = data + '%' + carrier
-    #             currentCarrier = dic[0][0]
-    #             dataList.append(data)
-
-    #         data = dic[1] + '#' + dic[2] + '#' + ','.join(dic[3]) + '#' + ','.join(dic[4])
-    #         dataList.append(data)
-            
-    #     FileManager.FileWriter(baseDir + '\\Dic\\' + fileName, dataList, 'w')
 
     if target == 'Absent' or target == '':
         if os.path.isdir(baseDir + '\\Dic') == False:
@@ -289,169 +287,153 @@ def WriteDic(target=''):
 
         FileManager.FileWriter(baseDir + '\\Dic\\' + fileName, dataList, 'w')
 
-    # if target == 'Divide' or target == '':
-    #     fileName = 'DividList-' + timeStamp + '.txt'
 
-    #     dataList = []
-    #     for dic in dividDic:
-    #         data = dic[0] + '#' + str(dic[1]) + '#' + ','.join(dic[2])
-    #         dataList.append(data)
-
-    #     FileManager.FileWriter(baseDir + '\\Dic\\' + fileName, dataList, 'w')
-
-    # if target == 'Complete' or target == '':
-    #     if os.path.isdir(baseDir + '\\Dic') == False:
-    #         os.makedirs(baseDir + '\\Dic')
-    #     fileName = 'ReviewCompleteList-' + timeStamp + '.txt'
-
-    #     dataList = []
-    #     data = ':'.join(completeReviewList)
-    #     dataList.append(data)
-
-    #     FileManager.FileWriter(baseDir + '\\Dic\\' + fileName, dataList, 'w')
-
-
-def GetProductDic():
+def GetProductDic(refresh=False):
+    global sourceName
     global productDic
     global absentDic
-    global dividDic
-    global completeReviewList
-    global sourceName
-
-    productDic = []
-    absentDic = []
-    dividDic = []
-    completeReviewList = []
-
-    if os.path.isdir(baseDir + '\\Dic') == False:
-        os.makedirs(baseDir + '\\Dic')
-    DataBaseManager.Connect()
     
-    carrierAliasList = []
-    productList = DataBaseManager.DoSQL("""
-            SELECT
-                product_dic.Product_ID,
-                product_dic.Carrier_ID,
-                product_dic.Product_Name,
-                product_dic.Category_ID,
-                product_discription.Discription,
-                product_discription.Type
-            FROM
-                product_dic
-            LEFT JOIN product_discription
-            ON product_dic.Product_ID = product_discription.Product_ID
-            """)
-    currentProductID = -1
-    currentCarrierID = -1
-    currentIndex = -1
-    for data in productList:
-        if data[1] != currentCarrierID:
-            currentCarrierID = data[1]
-            carrierAliasList = []
-            sqlResult = DataBaseManager.DoSQL("""
+    if refresh == True or len(productDic) <= 0:
+        carrierAliasList = []
+        productList = DataBaseManager.DoSQL("""
                 SELECT
-                    Carrier_Alias
+                    product_dic.Product_ID,
+                    product_dic.Carrier_ID,
+                    product_dic.Product_Name,
+                    product_dic.Category_ID,
+                    product_discription.Discription,
+                    product_discription.Type
                 FROM
-                    carrier_dic
-                WHERE carrier_dic.Carrier_ID = """ + str(currentCarrierID) + """
+                    product_dic
+                LEFT JOIN product_discription
+                ON product_dic.Product_ID = product_discription.Product_ID
                 """)
-            for result in sqlResult:
-                carrierAliasList.append(result[0])
-        if data[0] != currentProductID:
-            currentProductID = data[0]
-            newProduct = []
-            newProduct.append(carrierAliasList)
-            newProduct.append(data[2])
-            newProduct.append([])
-            newProduct.append([])
+        currentProductID = -1
+        currentCarrierID = -1
+        for data in productList:
+            if data[1] != currentCarrierID:
+                currentCarrierID = data[1]
+                carrierAliasList = []
+                sqlResult = DataBaseManager.DoSQL("""
+                    SELECT
+                        Carrier_Alias
+                    FROM
+                        carrier_dic
+                    WHERE Carrier_ID = """ + str(currentCarrierID) + """
+                    """)
+                for result in sqlResult:
+                    carrierAliasList.append(result[0])
+            if data[0] != currentProductID:
+                currentProductID = data[0]
+                newProduct = {'carrier': carrierAliasList, 'mainDiscription': [], 'subDiscription': []}
+                newItem = {data[2]: newProduct}
+                productDic.update(newItem)
 
-            productDic.append(newProduct)
-            currentIndex += 1
+            if data[5] == 1:
+                productDic.get(data[2]).get('mainDiscription').append(data[4])
+            elif data[5] == 2:
+                productDic.get(data[2]).get('subDiscription').append(data[4])
 
-        if data[5] == 1:
-            productDic[currentIndex][2].append(data[4])
-        else:
-            productDic[currentIndex][3].append(data[4])
+    if refresh == True or len(absentDic) <= 0:
+        if os.path.isdir(baseDir + '\\Dic') == False:
+            os.makedirs(baseDir + '\\Dic')
 
-    targetFileList = []
-    fileList = os.listdir(baseDir + '\\Dic')
-    for file in fileList:
-        if file.__contains__('AbsentList'):
-            targetFileList.append(baseDir + '\\Dic\\'+ file)
+        targetFileList = []
+        fileList = os.listdir(baseDir + '\\Dic')
+        for file in fileList:
+            if file.__contains__('AbsentList'):
+                targetFileList.append(baseDir + '\\Dic\\'+ file)
 
-    if len(targetFileList) > 0:
-        targetFileName = max(targetFileList)
-        readData = FileManager.FileReader(open(targetFileName, 'r', encoding='utf-8'))
-        for data in readData:
-            splitData = data.split('#')
-            newDic = []
-            NNPName = splitData[0]
-            newDic.append(NNPName)
-            NNPCount = int(splitData[1])
-            newDic.append(NNPCount)
-            ReviewList = splitData[2].split(',')
-            newDic.append(ReviewList)
+        if len(targetFileList) > 0:
+            targetFileName = max(targetFileList)
+            readData = FileManager.FileReader(open(targetFileName, 'r', encoding='utf-8'))
+            for data in readData:
+                splitData = data.split('#')
+                newDic = []
+                NNPName = splitData[0]
+                newDic.append(NNPName)
+                NNPCount = int(splitData[1])
+                newDic.append(NNPCount)
+                ReviewList = splitData[2].split(',')
+                newDic.append(ReviewList)
 
-            absentDic.append(newDic)
-
-    # targetFileList = []
-    # fileList = os.listdir(baseDir + '\\Dic')
-    # for file in fileList:
-    #     if file.__contains__('DividList'):
-    #         targetFileList.append(baseDir + '\\Dic\\'+ file)
-
-    # if len(targetFileList) > 0:
-    #     targetFileName = max(targetFileList)
-    #     readData = FileManager.FileReader(open(targetFileName, 'r', encoding='utf-8'))
-    #     for data in readData:
-    #         splitData = data.split('#')
-    #         newDic = []
-    #         NNPName = splitData[0]
-    #         newDic.append(NNPName)
-    #         NNPCount = int(splitData[1])
-    #         newDic.append(NNPCount)
-    #         ReviewList = splitData[2].split(',')
-    #         newDic.append(ReviewList)
-
-    #         dividDic.append(newDic) 
-
-    # targetFileList = []
-    # fileList = os.listdir(baseDir + '\\Dic')
-    # for file in fileList:
-    #     if file.__contains__('ReviewCompleteList'):
-    #         targetFileList.append(baseDir + '\\Dic\\'+ file)
-
-    # if len(targetFileList) > 0:
-    #     targetFileName = max(targetFileList)
-    #     readData = FileManager.FileReader(open(targetFileName, 'r', encoding='utf-8'))
-    #     completeReviewList = readData[0].split(':')
+                absentDic.append(newDic)
 
 
 def GetProductCategoryList():
-    resultList = []
+    resultList = {}
 
-    for dic in productDic:
-        if resultList.__contains__(dic[2]) == False:
-            resultList.append(dic[2])
+    sqlResult = DataBaseManager.DoSQL("""
+    SELECT Category_ID, Category
+    FROM category_dic
+    """)
+
+    resultList = dict(sqlResult)
 
     return resultList
 
 
-def GetProductCarrierList(targetIndex=0):
-    resultList = []
+def GetProductCarrierList(targetID=0, getTitle=None, targetProduct=None):
+    if getTitle == None:
+        getTitle = False
+    if targetProduct == None:
+        targetProduct = ''
 
-    for dic in productDic:
-        if targetIndex == -1:
-            Carrier = dic[0]
+    resultList = {}
+
+    if targetID == 0:
+        if targetProduct == '':
+            sqlResult = DataBaseManager.DoSQL("""
+            SELECT Carrier_ID
+            FROM product_carrier
+            """)
         else:
-            Carrier = dic[0][targetIndex]
-        if resultList.__contains__(Carrier) == False:
-            resultList.append(Carrier)
+            sqlResult = DataBaseManager.DoSQL("""
+            SELECT Carrier_ID
+            FROM product_carrier
+            WHERE Carrier_Name = '""" + targetProduct + """'
+            """)
+        carrierList = []
+        for result in sqlResult:
+            carrierList.extend(result)
+
+        if getTitle:
+            for carrier in carrierList:
+                sqlResult = DataBaseManager.DoSQL("""
+                SELECT Carrier_Name
+                FROM prodcut_carrier
+                WHERE Carrier_ID = """ + str(carrier) + """
+                """)
+                newDic = {carrier: sqlResult[0][0]}
+                resultList.update(newDic)
+        else:
+            for carrier in carrierList:
+                sqlResult = DataBaseManager.DoSQL("""
+                SELECT Carrier_Word_ID, Carrier_Alias
+                FROM carrier_dic
+                WHERE Carrier_ID = """ + str(carrier) + """
+                """)
+                aliasList = dict(sqlResult)
+                newDic = {carrier: aliasList}
+                resultList.update(newDic)
+    else:
+        sqlResult = DataBaseManager.DoSQL("""
+        SELECT Carrier_ID, Carrier_Alias
+        FROM carrier_dic
+        WHERE Carrier_Word_ID = """ + str(targetID) + """
+        """)
+        newDic = {sqlResult[0][0]: {targetID: sqlResult[0][1]}}
+        resultList.update(newDic)
 
     return resultList
 
 
-def ManageProduct(title='', outPut=''):
+def ManageProduct(title=None, outPut=None):
+    if title == None:
+        title = ''
+    if outPut == None:
+        outPut = ''
+
     GetProductDic()
 
     while True:
@@ -463,7 +445,7 @@ def ManageProduct(title='', outPut=''):
             return ''
 
         while True:
-            productList = GetProductName(productName)
+            productList = GetProductName(productName).get('product_Name')
             main.ShowTitle('Data for ' + productName + '\n' + outPut, title)
             number = 1
             for product in productList:
@@ -492,10 +474,7 @@ def ManageProduct(title='', outPut=''):
                     continue
 
             if targetIndex != -1:
-                productPureName = productList[targetIndex - 1].split(' ')
-                productPureName.pop(0)
-                productPureName = ' '.join(productPureName)
-                targetIndex = GetProductName().index(productPureName)
+                productPureName = productList[targetIndex - 1]
                 while True:
                     main.ShowTitle(title, outPut)
                     print('1. Modify\n2. Delete')
@@ -506,7 +485,7 @@ def ManageProduct(title='', outPut=''):
                         outPutWork = 'Modify ' + productPureName
                         break
                     elif modeInput == '2':
-                        ProductDictionaryRemove(targetIndex)
+                        ProductDictionaryRemove(productPureName)
                         break
 
             outPutState = ''
@@ -537,18 +516,15 @@ def ManageProduct(title='', outPut=''):
             for i in range(0, 2):
                 stateString = [' / Carrier', ' / Category']
                 targetString = ['carrier', 'category']
-                dataList = []
                 if i == 0:
-                    dataList = GetProductCarrierList(-1)
+                    dataList = GetProductCarrierList(0)
                 else:
                     dataList = GetProductCategoryList()
                 while True:
                     main.ShowTitle(outPutWork + stateString[i] + '\n' + outPut, title)
-                    number = 1
-                    for propertyName in dataList:
-                        print(str(number) + '. ', end='')
+                    for ID, propertyName in dataList.items():
+                        print(str(ID) + '. ', end='')
                         print(propertyName)
-                        number += 1
                     print('')
                     if inputValue != 'a':
                         print('s. Skip')
@@ -595,7 +571,11 @@ def ManageProduct(title='', outPut=''):
                         propertyList[i] = propertyInputValue.replace(' ', '')
                     else:
                         try:
-                            propertyIndex = int(propertyInputValue)
+                            if propertyInputValue in dataList.keys():
+                                propertyIndex = int(propertyInputValue)
+                            else:
+                                outPut = 'Please enter correct number or charactor'
+                                continue
                         except:
                             outPut = 'Please enter correct number or charactor'
                             continue
@@ -655,47 +635,14 @@ def ManageProduct(title='', outPut=''):
                     ProductDictionaryModify(targetIndex, name, propertyList[0], propertyList[1], DiscriptionList[0], DiscriptionList[1])
 
 
-def ProductDictionaryAppend(name, carrier, category, mainDiscriptionList, subDiscriptionList=[]):
-    GetProductDic()
+def ProductDictionaryAppend(name, carrier, category, mainDiscriptionList, subDiscriptionList=None):
+    dummy = ''
 
-    newProduct = []
-    newProduct.append(carrier)
-    newProduct.append(name)
-    newProduct.append(category)
-    newProduct.append(mainDiscriptionList)
-    newProduct.append(subDiscriptionList)
-
-    productDic.append(newProduct)
-
-    WriteDic('Product')
-
-
-def ProductDictionaryModify(index, name='', carrier='', category='', mainDiscription=None, subDiscription=None):
-    GetProductDic()
-
-    targetDic = productDic[index]
-
-    if carrier != '':
-        targetDic[0] = carrier
-    if name != '':
-        targetDic[1] = name
-    if category != '':
-        targetDic[2] = category
-    if mainDiscription != None:
-        targetDic[3] = mainDiscription
-    if subDiscription != None:
-        targetDic[4] = subDiscription
-
-    WriteDic('Product')
-
+def ProductDictionaryModify(index, name=None, carrier=None, category=None, mainDiscription=None, subDiscription=None):
+    dummy = ''
 
 def ProductDictionaryRemove(index):
-    GetProductDic()
-
-    productDic.pop(index)
-
-    WriteDic('Product')
-
+    dummy = ''
 
 def Proceed():
     if os.path.isdir('C:\\mecab') == False:
