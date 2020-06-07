@@ -1,7 +1,7 @@
-<!-- 메인페이지 -->
+<!-- 검색 결과 페이지 -->
 <html>
   <head>
-    <title> Visualization Module </title>
+    <title> Visualization Module - result </title>
     <!--Meta -->
     <meta http-equiv="content-type" content = "text/html; charset = UTF-8" />
     <meta name="viewport" content="width=device-width; initial-scale=1">
@@ -61,7 +61,7 @@
         transform: translate(-50%, -50%);
         text-align: center;
         z-index:1;
-        font-size:1.2rem;
+        font-size:1.3rem;
         color: white;
         max-width: 100%;
         max-height: 100%;
@@ -109,23 +109,20 @@
     ini_set("display_errors", 1);
     header("content-type:text/html; charset=UTF-8");
     
-    include "lib/db_connect.php";//db연결
-    include ("lib/rcmd_random.php");//recommend random
+    include_once "lib/db_connect.php";//db연결
+    include_once ("lib/rcmd_random.php");//recommend random
 
-    //rcmd 데이터 랜덤 받기
     $rcmd_data = rand_rcmd_data();
+
     ?>
 
-    <!-- Nav 별건 없음 -->
+    <!-- Navbar - 로고와 제목 - 메인 페이지로 연결 -->
     <nav class="navbar navbar-expand-sm navbar-custom">
     </nav>
     <!-- 컨테이너 -->
     <div class="container-fluid">
-      <br><br><br><br><br><br>
-      <!-- 검색 입력 폼 -->
-      <form action = "search/search_post.php" name = "search" method = "get">
-        <!-- 검색창을 위한 그리드  -->
-        <div class="row">
+      <!-- 검색창을 위한 그리드 - 검색창은 왼쪽 상단 -->
+      <div class="row">
           <div class="col-lg-3 col-md-1"></div>
           <!-- SearchPanel  -->
           <div class="col-lg-6 col-md-10">
@@ -140,8 +137,11 @@
         </div>
         <br><br>
         <hr>
-        <!-- 제품 추천을 위한 그리드  -->
-        <div class="row">    
+
+      <!--No Result 창 - No result 일 경우 출력 -->
+      <div></div> 
+      <!-- 제품 추천을 위한 그리드 - No result 일 경우 출력  -->
+      <div class="row">    
           <div class="col-sm-2"></div>
           <div class="col-sm-8">
             <!-- 추천 텍스트  -->
@@ -239,8 +239,10 @@
           </div>
           <div class="col-sm-2"></div>
         </div>
-        <br>
-      <form>  
+
+      <!-- Result가 있을 경우 출력되는 결과 페이지 -->
+      <div></div> 
+
     </div>
     
     <!-- js 사용 -->
