@@ -1,4 +1,4 @@
-<!-- 메인페이지 -->
+<!-- 검색 결과 없음 -->
 <html>
   <head>
     <title> Visualization Module </title>
@@ -122,6 +122,8 @@
     include_once "../lib/db_connect.php";//db연결
     include_once "../lib/rcmd_random.php";//recommend random
 
+    //rcmd 데이터 랜덤 받기
+    $rcmd_data = rand_rcmd_data();
     //이미 검색된 검색어
     $result_text = "";
 
