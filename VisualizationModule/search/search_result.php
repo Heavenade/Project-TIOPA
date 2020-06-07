@@ -1,12 +1,12 @@
-<!-- 검색 결과 페이지 -->
+<!-- 메인페이지 -->
 <html>
   <head>
-    <title> Visualization Module - result </title>
+    <title> Visualization Module </title>
     <!--Meta -->
     <meta http-equiv="content-type" content = "text/html; charset = UTF-8" />
     <meta name="viewport" content="width=device-width; initial-scale=1">
     <!-- 부트스트랩 사용 -->
-    <link rel="stylesheet" href="css/bootstrap.css">
+    <link rel="stylesheet" href="../css/bootstrap.css">
     <!-- 스타일 변경: 왜 부트스트랩에서 안먹힘  -->
     <style>   
       .img-searchpanel{
@@ -61,7 +61,7 @@
         transform: translate(-50%, -50%);
         text-align: center;
         z-index:1;
-        font-size:1.3rem;
+        font-size:1.1rem;
         color: white;
         max-width: 100%;
         max-height: 100%;
@@ -109,27 +109,38 @@
     ini_set("display_errors", 1);
     header("content-type:text/html; charset=UTF-8");
     
-    include_once "lib/db_connect.php";//db연결
-    include_once ("lib/rcmd_random.php");//recommend random
+    include_once "../lib/db_connect.php";//db연결
+    include_once "../lib/rcmd_random.php";//recommend random
 
+    //rcmd 데이터 랜덤 받기
     $rcmd_data = rand_rcmd_data();
+    //이미 검색된 검색어
+    $result_text = "";
 
+    //검색한 데이터 받기
+    if(!$_POST['search_text']==NULL && !$_POST['search_text']=="" )
+    {
+        $result_text=$_POST['search_text'];  
+    }
     ?>
 
-    <!-- Navbar - 로고와 제목 - 메인 페이지로 연결 -->
+    <!-- Nav  - 로고와 메인페이지 리다이렉션 -->
     <nav class="navbar navbar-expand-sm navbar-custom">
     </nav>
     <!-- 컨테이너 -->
     <div class="container-fluid">
-      <!-- 검색창을 위한 그리드 - 검색창은 왼쪽 상단 -->
-      <div class="row">
+      <br><br><br><br><br><br>
+      <!-- 검색 입력 폼 -->
+      <form action = "../search/search_post.php" name = "search" method = "get">
+        <!-- 검색창을 위한 그리드 - 왼쪽으로 붙여야 함 아님 navbar로 옮겨야함 -->
+        <div class="row">
           <div class="col-lg-3 col-md-1"></div>
           <!-- SearchPanel  -->
           <div class="col-lg-6 col-md-10">
             <span class= "text-center"><h1><a><i>Product Image<br> Analysis Service<br></h1></i></a></span>
             <div class="img-searchpanel center-block">
-              <img src="resources/Search Panel Resize.svg">
-              <input type="search" name="search_text" class="form-control form-searchpanel" value="" placeholder="검색할 제품을 입력하세요.">
+              <img src="../resources/Search Panel Resize.svg">
+              <input type="search" name="search_text" class="form-control form-searchpanel" value="<?=$result_text?>" placeholder="검색할 제품을 입력하세요.">
               <input type="submit" class="btn btn-primary search-btn" value="검색">
             </div>
           </div>
@@ -137,11 +148,8 @@
         </div>
         <br><br>
         <hr>
-
-      <!--No Result 창 - No result 일 경우 출력 -->
-      <div></div> 
-      <!-- 제품 추천을 위한 그리드 - No result 일 경우 출력  -->
-      <div class="row">    
+        <!-- 제품 추천을 위한 그리드 NoREsult 일시에만 -->
+        <div class="row">    
           <div class="col-sm-2"></div>
           <div class="col-sm-8">
             <!-- 추천 텍스트  -->
@@ -153,83 +161,84 @@
                 <div class="clearfix visible-sm-block"></div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="../resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
                     <div class="rcmd-text"><span><?=get_rcmd_name(0,$rcmd_data);?></span></div>
                     <button type="submit" name="search_text" value="<?=get_rcmd_name(0,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="../resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
                     <div class="rcmd-text"><span><?=get_rcmd_name(1,$rcmd_data);?></span></div>
                     <button type="submit" name="search_text" value="<?=get_rcmd_name(1,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="../resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
                     <div class="rcmd-text"><span><?=get_rcmd_name(2,$rcmd_data);?></span></div>
                     <button type="submit" name="search_text" value="<?=get_rcmd_name(2,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="../resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
                     <div class="rcmd-text"><span><?=get_rcmd_name(3,$rcmd_data);?></span></div>
                     <button type="submit" name="search_text" value="<?=get_rcmd_name(3,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="../resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
                     <div class="rcmd-text"><span><?=get_rcmd_name(4,$rcmd_data);?></span></div>
                     <button type="submit" name="search_text" value="<?=get_rcmd_name(4,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="../resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
                     <div class="rcmd-text"><span><?=get_rcmd_name(5,$rcmd_data);?></span></div>
                     <button type="submit" name="search_text" value="<?=get_rcmd_name(5,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="../resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
                     <div class="rcmd-text"><span><?=get_rcmd_name(6,$rcmd_data);?></span></div>
                     <button type="submit" name="search_text" value="<?=get_rcmd_name(6,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="../resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
                     <div class="rcmd-text"><span><?=get_rcmd_name(7,$rcmd_data);?></span></div>
                     <button type="submit" name="search_text" value="<?=get_rcmd_name(7,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="../resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
                     <div class="rcmd-text"><span><?=get_rcmd_name(8,$rcmd_data);?></span></div>
                     <button type="submit" name="search_text" value="<?=get_rcmd_name(8,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="../resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
                     <div class="rcmd-text"><span><?=get_rcmd_name(9,$rcmd_data);?></span></div>
                     <button type="submit" name="search_text" value="<?=get_rcmd_name(9,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="../resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
+                    <div class="rcmd-text"><span><?=get_rcmd_name(10,$rcmd_data);?></span></div>
                     <button type="submit" name="search_text" value="<?=get_rcmd_name(10,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="../resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
                     <div class="rcmd-text"><span><?=get_rcmd_name(11,$rcmd_data);?></span></div>
                     <button type="submit" name="search_text" value="<?=get_rcmd_name(11,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
@@ -239,15 +248,13 @@
           </div>
           <div class="col-sm-2"></div>
         </div>
-
-      <!-- Result가 있을 경우 출력되는 결과 페이지 -->
-      <div></div> 
-
+        <br>
+      <form>  
     </div>
     
     <!-- js 사용 -->
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
-    <script type="text/javascript" src="js/bootstrap.js"></script>
+    <script type="text/javascript" src="../js/bootstrap.js"></script>
 
   </body>
 </html>

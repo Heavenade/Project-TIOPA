@@ -61,7 +61,7 @@
         transform: translate(-50%, -50%);
         text-align: center;
         z-index:1;
-        font-size:1.2rem;
+        font-size:1.1rem;
         color: white;
         max-width: 100%;
         max-height: 100%;
@@ -109,8 +109,8 @@
     ini_set("display_errors", 1);
     header("content-type:text/html; charset=UTF-8");
     
-    include "lib/db_connect.php";//db연결
-    include ("lib/rcmd_random.php");//recommend random
+    include_once "lib/db_connect.php";//db연결
+    include_once "lib/rcmd_random.php";//recommend random
 
     //rcmd 데이터 랜덤 받기
     $rcmd_data = rand_rcmd_data();
@@ -133,6 +133,7 @@
             <div class="img-searchpanel center-block">
               <img src="resources/Search Panel Resize.svg">
               <input type="search" name="search_text" class="form-control form-searchpanel" value="" placeholder="검색할 제품을 입력하세요.">
+              <input type="hidden" name="rcmd_name" value="">
               <input type="submit" class="btn btn-primary search-btn" value="검색">
             </div>
           </div>
@@ -153,85 +154,86 @@
                 <div class="clearfix visible-sm-block"></div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
                     <div class="rcmd-text"><span><?=get_rcmd_name(0,$rcmd_data);?></span></div>
-                    <button type="submit" name="search_text" value="<?=get_rcmd_name(0,$rcmd_data);?>" class="btn rcmd-btn"></button>
+                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(0,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
                     <div class="rcmd-text"><span><?=get_rcmd_name(1,$rcmd_data);?></span></div>
-                    <button type="submit" name="search_text" value="<?=get_rcmd_name(1,$rcmd_data);?>" class="btn rcmd-btn"></button>
+                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(1,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
                     <div class="rcmd-text"><span><?=get_rcmd_name(2,$rcmd_data);?></span></div>
-                    <button type="submit" name="search_text" value="<?=get_rcmd_name(2,$rcmd_data);?>" class="btn rcmd-btn"></button>
+                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(2,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
                     <div class="rcmd-text"><span><?=get_rcmd_name(3,$rcmd_data);?></span></div>
-                    <button type="submit" name="search_text" value="<?=get_rcmd_name(3,$rcmd_data);?>" class="btn rcmd-btn"></button>
+                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(3,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
                     <div class="rcmd-text"><span><?=get_rcmd_name(4,$rcmd_data);?></span></div>
-                    <button type="submit" name="search_text" value="<?=get_rcmd_name(4,$rcmd_data);?>" class="btn rcmd-btn"></button>
+                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(4,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
                     <div class="rcmd-text"><span><?=get_rcmd_name(5,$rcmd_data);?></span></div>
-                    <button type="submit" name="search_text" value="<?=get_rcmd_name(5,$rcmd_data);?>" class="btn rcmd-btn"></button>
+                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(5,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
                     <div class="rcmd-text"><span><?=get_rcmd_name(6,$rcmd_data);?></span></div>
-                    <button type="submit" name="search_text" value="<?=get_rcmd_name(6,$rcmd_data);?>" class="btn rcmd-btn"></button>
+                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(6,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
                     <div class="rcmd-text"><span><?=get_rcmd_name(7,$rcmd_data);?></span></div>
-                    <button type="submit" name="search_text" value="<?=get_rcmd_name(7,$rcmd_data);?>" class="btn rcmd-btn"></button>
+                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(7,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
                     <div class="rcmd-text"><span><?=get_rcmd_name(8,$rcmd_data);?></span></div>
-                    <button type="submit" name="search_text" value="<?=get_rcmd_name(8,$rcmd_data);?>" class="btn rcmd-btn"></button>
+                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(8,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
                     <div class="rcmd-text"><span><?=get_rcmd_name(9,$rcmd_data);?></span></div>
-                    <button type="submit" name="search_text" value="<?=get_rcmd_name(9,$rcmd_data);?>" class="btn rcmd-btn"></button>
+                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(9,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
-                    <button type="submit" name="search_text" value="<?=get_rcmd_name(10,$rcmd_data);?>" class="btn rcmd-btn"></button>
+                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
+                    <div class="rcmd-text"><span><?=get_rcmd_name(10,$rcmd_data);?></span></div>
+                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(10,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
                 <div class="col-md-2 col-sm-4 col-xs-6">
                   <div class ="img-recommend center-block">
-                    <img src="<?=$image_string=rand_rcmd_num();?>">
+                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
                     <div class="rcmd-text"><span><?=get_rcmd_name(11,$rcmd_data);?></span></div>
-                    <button type="submit" name="search_text" value="<?=get_rcmd_name(11,$rcmd_data);?>" class="btn rcmd-btn"></button>
+                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(11,$rcmd_data);?>" class="btn rcmd-btn"></button>
                   </div>
                 </div>
               </div>
