@@ -33,6 +33,17 @@ output:
      ['2'] : (""),
      ['None'] : ("") }
     
+    ################## 0608 수정됨 ####################################
+    
+    (dict) 형태로 반환하며
+    {
+       'word1' : '-1' ,
+       'word2' : 'None' ,
+       'word3' :  '2'
+    }
+    같은식입니다.
+    
+    
 principle:
     sentiWord_(-2, -1, 0, 1, 2, None) 파일이 있습니다.
     같은 sentiWord 라인에 있으면 단어를 묶어서 반환합니다...
@@ -51,6 +62,7 @@ class BindSentiWords:
 
     def __init__(self):
         # 클래스 생성자입니다.
+        print("BindSentWords Init")
         
         # Senti Dict 불러오기
         # ex) sentiDict['2'] = { [가능하다,가능] , [가장 좋은,가장 좋], ...}
@@ -62,9 +74,6 @@ class BindSentiWords:
     def BindSentiWords( self, inWordsList ):
         # 초기화
         resultDict = dict()
-        for key in self.keyList:
-            resultDict[key] = set()
-        resultDict['None'] = set()
         
         # 받아온 리스트 단어가 Senti Dict 에 있는지 탐색
         # 만약 존재한다면 resultDict[key] 에 삽입
@@ -73,25 +82,28 @@ class BindSentiWords:
             isFound = False
             for key in self.sentiDict.keys():
                 if word in self.sentiDict[key]:
-                    resultDict[key].add(word)
+                    resultDict[word] = key
                     isFound = True
                     break
             if isFound == False:
-                resultDict['None'].add(word)
+                resultDict[word] = 'None'
         
         # None으로 구분된 친구들은 None에 저장한다.
         with open("sentiWords/SentiWord_None.txt", encoding="UTF8", mode='a') as f:
-            for word in resultDict['None']:
-                f.write(word +"\n" );
+            for word in resultDict.keys():
+                if resultDict[word] == 'None':
+                    f.write(word +"\n" );
         
         return resultDict
 
-'''
+
 import time
-bsw = BindSentiWords
-a = ['a'] * 1000
+bsw = BindSentiWords()
+a = ['a' , '예쁘다', "개예쁘다", "존멋"]
 print("start " + time.ctime())
-for _ in range(0, 1000):
-    bsw.BindSentiWords(bsw,a)
+
+print(type(bsw))
+result = bsw.BindSentiWords(a)
+print (result)
+
 print("end " + time.ctime())
-'''
