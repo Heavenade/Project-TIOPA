@@ -31,8 +31,8 @@
   .img-searchpanel .form-searchpanel{
     position: absolute;
     top:50%;
-    left:40%;
-    transform: translate(-40%, -50%);
+    left:35%;
+    transform: translate(-35%, -50%);
     text-align: left;
     z-index:1;
     font-size: 0.95em;
@@ -232,4 +232,92 @@
   .navbar-custom .nav-item.active .nav-link,
   .navbar-custom .nav-item:hover .nav-link {
       color: #ffffff;
-  }   
+  }
+
+  .noresult-text{
+    position: absolute;
+    top:180%;
+    left:50%;
+    transform: translate(-50%, -180%);
+    font-weight:300;
+    font-size: 2.8rem;
+  }
+
+  /*여기부터 search_result 페이지 전용*/
+  .main-feature{
+    position: relative;
+    margin-top: 0%; margin-left: 0%; margin-right: 0%; margin-bottom: 0%; 
+    max-width: 100%;
+    max-height: auto;
+    height: 20rem;
+  }
+  .main-feature .main-feature-text{
+    position: absolute;
+    top:50%;
+    left:50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    font-weight:300;
+    font-size: 1.8rem;
+    max-width : 100%;
+    max-height: auto;
+    transition:none;
+  }
+  .detailed-filter{
+    position: relative;
+    margin-top: 0%; margin-left: 0%; margin-right: 0%; margin-bottom: 0%; 
+    max-width: 100%;
+    max-height: auto;
+
+  }
+  .detailed-filter-card{
+    position: relative;
+
+    margin-top: 0%; margin-left: 0%; margin-right: 0%; margin-bottom: 0%; /* 투명 칸 안 이미지 크기 */
+    padding-top: 10%; padding-left:0%; padding-right: 0%; padding-bottom: 10%; /* 이미지 안 텍스트 크기 */
+
+    max-width: 100%;
+    max-height: auto;
+    width: 100%; height: auto;
+  }
+  .detailed-filter-text{
+    position: absolute;
+    top:0%;
+    left:3%;
+    transform: translate(-3%, 0%);
+    text-align: left;
+    font-weight:300;
+    font-size: 1.5rem;
+    max-width : 100%;
+    max-height: auto;
+    transition:none;
+  }
+  .visualization{
+    position: relative;
+    margin-top: 0%; margin-left: 0%; margin-right: 0%; margin-bottom: 0%; 
+    max-width: 100%;
+    max-height: auto;
+    height: auto;
+  }
+  .visualization-text{
+    position: absolute;
+    top:0%;
+    left:3%;
+    transform: translate(-3%, 0%);
+    text-align: left;
+    font-weight:300;
+    font-size: 1.5rem;
+    max-width : 100%;
+    max-height: auto;
+    transition:none;
+  }
+  .visualization-cate{
+    position: relative;
+
+    margin-top: 0%; margin-left: 5%; margin-right: 15%; margin-bottom: 0%;
+    
+    max-width: 80%;
+    max-height: auto;
+    width: 65%; 
+    height: auto;
+  }
