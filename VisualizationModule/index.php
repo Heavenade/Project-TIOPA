@@ -147,14 +147,9 @@
     </div>
     
     <!-- js 사용 -->
+
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script type="text/javascript" src="js/bootstrap.js"></script>
   </body>
 </html>
 
-<!-- <script type="text/javascript">
-
-    /* 페이지 이동 */   
-        this.document.getElementById("redirection").submit();
-
-</script> -->

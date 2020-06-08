@@ -4,6 +4,9 @@
     <title> Visualization Module </title>
     <meta http-equiv="content-type" content = "text/html; charset = UTF-8" />
     <meta name="viewport" content="width=device-width; initial-scale=1">
+
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+
     <link rel="stylesheet" href="../css/bootstrap.css">
     <link rel="stylesheet" href="../css/capstone-custom.css">
   </head>
