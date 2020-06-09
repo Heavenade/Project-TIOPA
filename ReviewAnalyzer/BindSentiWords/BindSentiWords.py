@@ -62,7 +62,7 @@ class BindSentiWords:
 
     def __init__(self):
         # 클래스 생성자입니다.
-        print("BindSentWords Init")
+        # print("BindSentWords Init")
         
         # Senti Dict 불러오기
         # ex) sentiDict['2'] = { [가능하다,가능] , [가장 좋은,가장 좋], ...}
@@ -96,14 +96,14 @@ class BindSentiWords:
         
         return resultDict
 
+if __name__ == '__main__':
+    import time
+    bsw = BindSentiWords()
+    a = ['a' , '예쁘다', "개예쁘다", "존멋"]
+    print("start " + time.ctime())
 
-import time
-bsw = BindSentiWords()
-a = ['a' , '예쁘다', "개예쁘다", "존멋"]
-print("start " + time.ctime())
+    print(type(bsw))
+    result = bsw.BindSentiWords(a)
+    print (result)
 
-print(type(bsw))
-result = bsw.BindSentiWords(a)
-print (result)
-
-print("end " + time.ctime())
+    print("end " + time.ctime())
