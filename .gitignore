@@ -125,9 +125,9 @@ dmypy.json
 .pyre/
 
 # Review Analyzer Word data
-ReviewAnalyzer/WordData/
-ReviewAnalyzer/WordVectorData
-ReviewAnalyzer/Dic
+ReviewAnalyzer/WordData/**/*.txt
+**/*.fasttext
+**/*.npy
 
 # Review Analyzer Test script
 TEST.py

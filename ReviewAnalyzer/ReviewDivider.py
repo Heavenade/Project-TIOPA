@@ -1,6 +1,7 @@
 import FileManager
 import DataBaseManager
 import DictionaryBuilder
+import WordSimilarity
 import NLP
 import os
 import datetime
@@ -9,11 +10,12 @@ import main
 
 baseDir = ''
 sourceName = ''
-wordDic = []
-absentDic = []
-dividDic = []
 productDic = {}
-completeReviewList = []
+productSimilarDic = {}
+similarInsertQuery = []
+similarUpdateQuery = []
+insertQuery = []
+updateQuery = []
 
 
 def SortProductList(targetIndex=None, order=None):
@@ -57,7 +59,7 @@ def GetProductName(mainData=None, subData=None):
     discriptedProductList = {}
     for key, value in productDic.items():
         didGet = False
-        for mainDiscription in value.get('mainDiscription'):
+        for mainDiscription in value['mainDiscription']:
             if mainDiscription == '':
                 continue
             if mainData.upper().replace(' ', '').__contains__(mainDiscription):
@@ -66,6 +68,13 @@ def GetProductName(mainData=None, subData=None):
                     newDiscription = {mainDiscription: key}
                     productDiscriptionList[0].update(newDiscription)
                     didGet = True
+                    break
+                for carrier in value['Carrier']:
+                    if len(DictionaryBuilder.GetSameStringIndex(wordList, carrier.upper().replace(' ', '')+mainDiscription)) > 0:
+                        newDiscription = {carrier.upper().replace(' ', '')+mainDiscription: key}
+                        productDiscriptionList[0].update(newDiscription)
+                        didGet = True
+                        break
                 break
 
         if didGet:
@@ -74,7 +83,7 @@ def GetProductName(mainData=None, subData=None):
             continue
 
         if subData != '':
-            for subDiscription in value.get('subDiscription'):
+            for subDiscription in value['subDiscription']:
                 if subDiscription == '':
                     continue
                 if mainData.upper().replace(' ', '').__contains__(subDiscription):
@@ -137,30 +146,136 @@ def GetProductName(mainData=None, subData=None):
     return resultDict
 
 
-def Dividing(reviewData, fileName, title=None, outPut=None):
-    global absentDic
+def AppendWordDicQuery(title=None, outPut=None):
+    global productDic
+    global productSimilarDic
+    global similarInsertQuery
+    global similarUpdateQuery
+    global insertQuery
+    global updateQuery
 
     if title == None:
         title = ''
     if outPut == None:
         outPut = ''
 
-    updateQuery = ''
-    insertQuery = ''
+    featureDic = {}
+    sqlResult = DataBaseManager.DoSQL("""
+    SELECT  Feature_Name, Category_ID
+    FROM    feature_dic
+    """)
+
+    for result in sqlResult:
+        try:
+            existFeatureList = featureDic[result[1]]
+        except:
+            existFeatureList = []
+        
+        existFeatureList.append(result[0])
+        newDict = {result[1]: existFeatureList}
+        featureDic.update(newDict)
+
+    createQuery = []
+    updateRelateTableQuery = []
+    for name, wordDict in productSimilarDic.items():
+        if productDic[name]['RelationTable'] == None:
+            try:
+                featureList = [name]
+                featureList[1:] = featureDic[productDic[name]['categoryID']]
+            except:
+                featureList = [name]
+
+            createQuery.append("""
+            CREATE TABLE        `db_capstone_similarity`.`""" + name + """` (
+                `Word_ID`       INT(11) NOT NULL AUTO_INCREMENT,
+                `Word`          TEXT    NOT NULL,
+                `Word_Count`    INT(11) NOT NULL DEFAULT '0',`""" + 
+                '`FLOAT NULL DEFAULT NULL,`'.join(featureList)
+                + """`          FLOAT NULL DEFAULT NULL,
+                PRIMARY KEY (`Word_ID`)
+            ) ENGINE = InnoDB
+            """)
+
+            updateRelateTableQuery.append("""
+            UPDATE  product_dic
+            SET     Relation_Table_Name = '""" + name + """'
+            WHERE   Product_ID = """ + str(productDic[name]['productID']) + """
+            """)
+
+            productDic[name]['RelationTable'] = name
+            existWord = {}
+        else:
+            WordList = []
+            WordList.extend(DataBaseManager.DoSQL("""
+            SELECT  `Word`, `Word_ID`
+            FROM    `""" + name + """`""", 'db_capstone_similarity'))
+            existWord = dict(WordList)
+
+        for word, count in wordDict.items():
+            try:
+                wordID = existWord[word]
+            except:
+                similarInsertQuery.append("""
+                INSERT INTO `""" + name + """` (`Word` ,`Word_Count`)
+                VALUES ('""" + word + """', """ + str(count) + """)
+                """)
+            else:
+                similarUpdateQuery.append("""
+                UPDATE  `""" + name + """`
+                SET     `Word_Count` = `Word_Count` + """ + str(count) + """
+                WHERE   `Word_ID` = """ + str(wordID) + """
+                """)
+
+    DataBaseManager.DoManyQuery(createQuery, title=title, outPut=outPut, queryType='CREATE')
+    DataBaseManager.DoManyQuery(updateRelateTableQuery, title=title, outPut=outPut, queryType='UPDATE')
+
+def Dividing(reviewData, fileName, title=None, outPut=None):
+    global similarInsertQuery
+    global similarUpdateQuery
+    global insertQuery
+    global updateQuery
+
+    if title == None:
+        title = ''
+    if outPut == None:
+        outPut = ''
+
+    similarInsertQuery = []
+    similarUpdateQuery = []
+    insertQuery = []
+    updateQuery = []
 
     completeIndex = 0
+    noProductIndex = 0
     skippedIndex = 0
-    updateTime = int(str(datetime.datetime.now().strftime('%Y%m%d%H%M%S')))
-    completedReview = []
-    for data in DataBaseManager.DoSQL('SELECT Article_Number FROM article_dic'):
-        completedReview.append(data[0])
 
-    main.ShowTitle(title, outPut + 'Building dictionary for ' + fileName + ' (' + str(completeIndex) + '/' +  str(len(reviewData)) + ')')
+    stackUnit = DataBaseManager.maximumQueryStactUnit
+
+    articleLastID = DataBaseManager.DoSQL("""
+    SELECT `AUTO_INCREMENT`
+    FROM  INFORMATION_SCHEMA.TABLES
+    WHERE TABLE_SCHEMA = 'db_capstone'
+    AND   TABLE_NAME   = 'review_dic';
+    """)[0][0]
+    articleNumberList = []
+    index = 0
+    while True:
+        articleNumberList.extend(DataBaseManager.DoSQL("""
+        SELECT  Review_ID, Review_Number
+        FROM    review_dic
+        WHERE   Review_ID > """ + str(index) + """ AND Review_ID <= """ + str(index + stackUnit) + """
+        """))
+        index += stackUnit
+        if index > articleLastID:
+            break
+    completedReview = dict(articleNumberList)
+
+    updateTime = 0
     for data in reviewData:
         currentTime = int(str(datetime.datetime.now().strftime('%Y%m%d%H%M%S')))
         if updateTime < currentTime:
             updateTime = currentTime
-            main.ShowTitle(title, outPut + 'Building dictionary for ' + fileName + ' (' + str(completeIndex + skippedIndex) + '/' +  str(len(reviewData)) + ')')
+            main.ShowTitle(title, outPut + 'Building dictionary for ' + fileName + ' (' + str(completeIndex + skippedIndex) + '/' +  str(len(reviewData)) + ') (not product: ' + str(noProductIndex) + ')')
 
         splitData = data.split(',')
         if len(splitData) < 2:
@@ -175,65 +290,70 @@ def Dividing(reviewData, fileName, title=None, outPut=None):
         reviewString = ''.join(splitData)
         reviewString = reviewString.replace('\n', '')
         reviewString = reviewString.replace(';', ',')
-        reviewString = DictionaryBuilder.ConvertNormalWord(reviewString, '', 'Product')[0]
 
-        if completedReview.__contains__(reviewNumber):
+        if reviewNumber in completedReview.values():
             skippedIndex += 1
             continue
 
         if reviewTitleString == '!e':
             continue
 
-        resultList = GetProductName(reviewTitleString, reviewString).get('product_Name')
+        reviewTitleStringList = NLP.DoNLP(reviewTitleString, None, 'Review')
+        reviewStringList = NLP.DoNLP(reviewString, None, 'Review')
+
+        resultList = GetProductName(' '.join(reviewTitleStringList), ' '.join(reviewStringList)).get('product_Name')
         
-        if len(resultList) <= 0:
-            wordList = NLP.DoNLP(reviewTitleString, 'NNP')
+        if len(resultList) > 0:
+            resultStringList = DictionaryBuilder.ConvertNormalWord(mainStringList=reviewTitleStringList, subStringList=reviewStringList, mode='Review')
+            resultString = '#'.join(resultStringList)
 
-            nnpList = []
-            for nnp in wordList:
-                if nnpList.__contains__(nnp) == False:
-                    nnpList.append(nnp)
-
-            for nnp in nnpList:
-                existWord = False
-                for word in absentDic:
-                    if nnp == word[0]:
-                        word[1] += 1
-                        word[2].append(reviewNumber)
-                        existWord = True
-                        break
-                    
-                if existWord:
-                    continue
-
-                newDic = []
-                reviewList = []
-                newDic.append(nnp)
-                newDic.append(1)
-                reviewList.append(reviewNumber)
-                newDic.append(reviewList)
-                absentDic.append(newDic)
-        else:
-            resultString = '#'.join(NLP.DoNLP(reviewString))
             for name in resultList:
-                updateQuery += 'UPDATE product_dic SET Count = Count + 1 WHERE Name = "' + name + '";'
-                productID = DataBaseManager.DoSQL('SELECT Product_ID FROM product_dic WHERE Name = "' + name + '"')[0][0]
-                insertQuery += 'INSERT INTO review_dic (Review_Number, Review, Product_ID) VALUES ("' + reviewNumber + '", "' + resultString + '", ' + str(productID) + ');'
+                updateQuery.append("""
+                UPDATE  product_dic
+                SET     Count = Count + 1
+                WHERE   Product_Name = '""" + name + """'
+                """)
+                insertQuery.append("""
+                INSERT INTO review_dic (Review_Number, Review, Product_ID)
+                VALUES ('""" + reviewNumber + """', '""" + resultString + """', """ + str(productDic[name].get('productID')) + """)
+                """)
+            
+                for word in resultStringList:
+                    try:
+                        wordDict = productSimilarDic[name]
+                    except:
+                        wordDict = {}
+                        
+                    try:
+                        currentCount = wordDict[word]
+                    except:
+                        currentCount = 0
 
-        resultString = '#'.join(NLP.DoNLP(reviewString, 'None', 'Word'))
-        insertQuery += 'INSERT INTO article_dic (Article_Number, Article) VALUES ("' + reviewNumber + '", "' + resultString + '");'
+                    wordInfo = {word: currentCount + 1}
+                    wordDict.update(wordInfo)
+                    newItem = {name: wordDict}
+                    productSimilarDic.update(newItem)
 
-        completeIndex += 1
-
-    # if updateQuery != '':
-    #     DataBaseManager.DoSQL(updateQuery)
-    # if insertQuery != '':
-    #     DataBaseManager.DoSQL(insertQuery)
+            completeIndex += 1
+        else:
+            noProductIndex += 1
 
     returnString = "Complete building dictionary for " + fileName
-    if skippedIndex > 0:
-        returnString += ' (skipped ' + str(skippedIndex) + ' of ' + str(len(reviewData)) + ' review)'
-    return returnString + '\n'
+    if skippedIndex > 0 or noProductIndex > 0:
+        if skippedIndex > 0:
+            returnString += ' (skipped: ' + str(skippedIndex)
+        if noProductIndex > 0:
+            returnString += ' / not product: ' + str(noProductIndex)
+        returnString += ')'
+    returnString += '\n'
+
+    AppendWordDicQuery(title=title, outPut=outPut+returnString)
+    DataBaseManager.DoManyQuery(insertQuery, title=title, outPut=outPut+returnString, queryType='INSERT')
+    DataBaseManager.DoManyQuery(updateQuery, title=title, outPut=outPut+returnString, queryType='UPDATE')
+    DataBaseManager.DoManyQuery(similarInsertQuery, 'db_capstone_similarity', title=title, outPut=outPut+returnString, queryType='INSERT')
+    DataBaseManager.DoManyQuery(similarUpdateQuery, 'db_capstone_similarity', title=title, outPut=outPut+returnString, queryType='UPDATE')
+
+    return returnString
 
 
 def GetReviewData(workDir):
@@ -258,56 +378,32 @@ def GetReviewData(workDir):
         except:
             outPut += 'fail to open ' + file + '\n' + '\n'
             main.ShowTitle(title, outPut)
-            continue        
-        
-        outPut += Dividing(FileManager.FileReader(fileDes), file, title, outPut)
-
-    return WriteDic()
-
+        else:
+            outPut += Dividing(FileManager.FileReader(fileDes), file, title, outPut)
+            # DictionaryBuilder.AppendArticleDic(FileManager.FileReader(fileDes), file, title, outPut)
     
-def WriteDic(target=None):
-    global baseDir
-    global sourceName
-    global absentDic
-
-    if target == None:
-        target = ''
-
-    timeStamp = str(datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
-
-    if target == 'Absent' or target == '':
-        if os.path.isdir(baseDir + '\\Dic') == False:
-            os.makedirs(baseDir + '\\Dic')
-        fileName = 'AbsentList-' + timeStamp + '.txt'
-
-        dataList = []
-        for dic in absentDic:
-            data = dic[0] + '#' + str(dic[1]) + '#' + ','.join(dic[2])
-            dataList.append(data)
-
-        FileManager.FileWriter(baseDir + '\\Dic\\' + fileName, dataList, 'w')
+    WordSimilarity.baseDir = baseDir
+    return WordSimilarity.ProcessAllProduct(title=None, outPut=outPut)
 
 
 def GetProductDic(refresh=False):
-    global sourceName
     global productDic
-    global absentDic
     
     if refresh == True or len(productDic) <= 0:
         carrierAliasList = []
         productList = DataBaseManager.DoSQL("""
-                SELECT
-                    product_dic.Product_ID,
-                    product_dic.Carrier_ID,
-                    product_dic.Product_Name,
-                    product_dic.Category_ID,
-                    product_discription.Discription,
-                    product_discription.Type
-                FROM
-                    product_dic
-                LEFT JOIN product_discription
-                ON product_dic.Product_ID = product_discription.Product_ID
-                """)
+        SELECT  product_dic.Product_ID,
+                product_dic.Carrier_ID,
+                product_dic.Product_Name,
+                product_dic.Category_ID,
+                product_discription.Discription,
+                product_discription.Type,
+                product_dic.Count,
+                product_dic.Relation_Table_Name
+        FROM    product_dic
+        LEFT JOIN product_discription
+        ON product_dic.Product_ID = product_discription.Product_ID
+        """)
         currentProductID = -1
         currentCarrierID = -1
         for data in productList:
@@ -315,17 +411,15 @@ def GetProductDic(refresh=False):
                 currentCarrierID = data[1]
                 carrierAliasList = []
                 sqlResult = DataBaseManager.DoSQL("""
-                    SELECT
-                        Carrier_Alias
-                    FROM
-                        carrier_dic
-                    WHERE Carrier_ID = """ + str(currentCarrierID) + """
-                    """)
+                SELECT  Carrier_Alias
+                FROM    carrier_dic
+                WHERE   Carrier_ID = """ + str(currentCarrierID) + """
+                """)
                 for result in sqlResult:
                     carrierAliasList.append(result[0])
             if data[0] != currentProductID:
                 currentProductID = data[0]
-                newProduct = {'carrier': carrierAliasList, 'mainDiscription': [], 'subDiscription': []}
+                newProduct = {'productID': data[0], 'categoryID': data[3], 'carrier': carrierAliasList, 'mainDiscription': [], 'subDiscription': [], 'Count': data[6], 'RelationTable': data[7]}
                 newItem = {data[2]: newProduct}
                 productDic.update(newItem)
 
@@ -333,31 +427,6 @@ def GetProductDic(refresh=False):
                 productDic.get(data[2]).get('mainDiscription').append(data[4])
             elif data[5] == 2:
                 productDic.get(data[2]).get('subDiscription').append(data[4])
-
-    if refresh == True or len(absentDic) <= 0:
-        if os.path.isdir(baseDir + '\\Dic') == False:
-            os.makedirs(baseDir + '\\Dic')
-
-        targetFileList = []
-        fileList = os.listdir(baseDir + '\\Dic')
-        for file in fileList:
-            if file.__contains__('AbsentList'):
-                targetFileList.append(baseDir + '\\Dic\\'+ file)
-
-        if len(targetFileList) > 0:
-            targetFileName = max(targetFileList)
-            readData = FileManager.FileReader(open(targetFileName, 'r', encoding='utf-8'))
-            for data in readData:
-                splitData = data.split('#')
-                newDic = []
-                NNPName = splitData[0]
-                newDic.append(NNPName)
-                NNPCount = int(splitData[1])
-                newDic.append(NNPCount)
-                ReviewList = splitData[2].split(',')
-                newDic.append(ReviewList)
-
-                absentDic.append(newDic)
 
 
 def GetProductCategoryList():

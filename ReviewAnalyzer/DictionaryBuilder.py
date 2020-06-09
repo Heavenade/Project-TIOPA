@@ -1,6 +1,7 @@
 import FileManager
 import DataBaseManager
 import ReviewDivider
+import WordSimilarity
 import NLP
 import datetime
 import os
@@ -8,8 +9,23 @@ import math
 import main
 
 baseDir = ''
-insertQuery = ''
-updateQuery = ''
+insertQuery = []
+updateQuery = []
+similarWordDic = {}
+
+
+def GetSimilarWordDic():
+    global similarWordDic
+    sqlResult = DataBaseManager.DoSQL("""
+    SELECT  Sub_Word, Super_Word
+    FROM    similar_word_dic
+    """)
+
+    if len(sqlResult) > 0:
+        similarWordDic = dict(sqlResult)
+    else:
+        similarWordDic = {}
+
 
 def BuildWordDic(workDir):
     fileList = os.listdir(workDir)
@@ -33,7 +49,9 @@ def BuildWordDic(workDir):
         outPut += AppendArticleDic(FileManager.FileReader(fileDes), file.split('.')[0], title, outPut)
 
     main.ShowTitle(title, outPut)
-    return ''
+
+    WordSimilarity.baseDir = baseDir
+    return WordSimilarity.ProcessArticle(outPut=outPut, title=None)
 
 
 def GetSameStringIndex(data, targetString, prevIndexList=None):
@@ -54,7 +72,7 @@ def GetSameStringIndex(data, targetString, prevIndexList=None):
             continue
         targetIndex = currentIndex + 1
         newTarget = [currentIndex]
-        compareString = data[currentIndex].upper()
+        compareString = data[currentIndex].upper().replace(' ', '')
         while True:
             if targetIndex >= len(data):
                 if compareString in targetString:
@@ -67,9 +85,9 @@ def GetSameStringIndex(data, targetString, prevIndexList=None):
                     break
             if passing:
                 break
-            if (compareString + data[targetIndex].upper()) in targetString:
+            if (compareString + data[targetIndex].upper().replace(' ', '')) in targetString:
                 newTarget.append(targetIndex)
-                compareString += data[targetIndex].upper()
+                compareString += data[targetIndex].upper().replace(' ', '')
             else:
                 if compareString in targetString:
                     prevIndexList.append(newTarget)
@@ -78,29 +96,34 @@ def GetSameStringIndex(data, targetString, prevIndexList=None):
                     break
             targetIndex += 1
         currentIndex += 1
-
+        
     return prevIndexList
 
 
-def ConvertNormalWord(mainString, subString=None, mode=None):
+def ConvertNormalWord(mainString=None, mainStringList=None, subString=None, subStringList=None, mode=None):
+    global similarWordDic
+
     if subString == None:
         subString = ''
     if mode == None:
         mode = 'Word'
 
     # print('Do NLP', end='                                       \r')
-    mainWordList = NLP.DoNLP(mainString, None, mode)
-    subWordList = NLP.DoNLP(subString, None, mode)
+    if mainString != None:
+        mainStringList = NLP.DoNLP(mainString, None, mode)
+    if subString != None:
+        subStringList = NLP.DoNLP(subString, None, mode)
+
     wordList = []
-    wordList.extend(mainWordList)
-    if mainString != subString:
-        wordList.extend(subWordList)
+    wordList.extend(mainStringList)
+    if mainStringList != subStringList and len(subStringList) > 0:
+        wordList.extend(subStringList)
 
     resultList = wordList
 
     # print('Get product', end='                                       \r')
-    productDiscriptionList = ReviewDivider.GetProductName(' '.join(mainWordList), ' '.join(subWordList))
-    
+    productDiscriptionList = ReviewDivider.GetProductName(' '.join(mainStringList), ' '.join(subStringList))
+
     if len(productDiscriptionList) > 0:
         resultList = []
 
@@ -127,32 +150,41 @@ def ConvertNormalWord(mainString, subString=None, mode=None):
             for indexList in value:
                 modifiedWord = ''
                 if indexList[0] in insertedIndex:
-                    modifiedWord = wordList[indexList[0]]
+                    modifiedWord = wordList[indexList[0]] + 'ㅩ'
                 else:
                     insertedIndex.append(indexList[0])
-                wordList[indexList[0]] = modifiedWord + 'ㅩ' + key
+                wordList[indexList[0]] = modifiedWord + key
 
                 for index in indexList:
                     if removeTargetIndex.__contains__(index) == False:
                         removeTargetIndex.append(index)
-                
+
         # print('Make string', end='                                       \r')
         for i in range(len(wordList)):
             if removeTargetIndex.__contains__(i) == False:
                 resultList.append(wordList[i])
             if i in insertedIndex:
-                resultList.extend(wordList[i].split('ㅩ')[1:-1])
+                resultList.extend(wordList[i].split('ㅩ'))
 
-    # if mode == 'Review':
+    if mode == 'Review':
+        wordList = resultList
+        resultList = []
+        for word in wordList:
+            try:
+                superWord = similarWordDic[word]
+            except:
+                resultList.append(word)
+            else:
+                resultList.append(superWord)
 
     return resultList
 
 
-def AppendWordDic(wordDic):
+def AppendWordDicQuery(wordDic):
     global insertQuery
     global updateQuery
 
-    stackUnit = 10000
+    stackUnit = DataBaseManager.maximumQueryStactUnit
 
     WordLastID = DataBaseManager.DoSQL("""
     SELECT `AUTO_INCREMENT`
@@ -172,15 +204,19 @@ def AppendWordDic(wordDic):
     existWord = dict(WordList)
 
     for word, count in wordDic.items():
-        if word in existWord.keys():
-            updateQuery += """
+        try:
+            RelationID = existWord[word]
+        except:
+            insertQuery.append("""
+            INSERT INTO similar_word_relation (Normal_Word, Target_Word ,Word_Count)
+            VALUES ('""" + word + """', '""" + word + """', """ + str(count) + """)
+            """)
+        else:
+            updateQuery.append("""
             UPDATE  similar_word_relation
             SET     Word_Count = Word_Count + """ + str(count) + """
-            WHERE   Similar_Relation_ID = """ + str(existWord.get(word)) + """;"""
-        else:
-            insertQuery += '''
-            INSERT INTO similar_word_relation (Normal_Word, Target_Word ,Word_Count)
-            VALUES ("''' + word + '''", "''' + word + '''", ''' + str(count) + ''');'''
+            WHERE   Similar_Relation_ID = """ + str(RelationID) + """
+            """)
 
 
 def AppendArticleDic(reviewData, fileName, title=None, outPut=None):
@@ -192,8 +228,9 @@ def AppendArticleDic(reviewData, fileName, title=None, outPut=None):
     if outPut == None:
         outPut = ''
 
-    insertQuery = ''
-    updateQuery = ''
+    insertQuery = []
+    updateQuery = []
+    stackUnit = DataBaseManager.maximumQueryStactUnit
 
     completeIndex = 0
     skippedIndex = 0
@@ -210,9 +247,8 @@ def AppendArticleDic(reviewData, fileName, title=None, outPut=None):
         articleNumberList.extend(DataBaseManager.DoSQL("""
         SELECT  Article_ID, Article_Number
         FROM    article_dic
-        WHERE   Article_ID > """ + str(index) + """ AND Article_ID <= """ + str(index + 10000) + """
-        """))
-        index += 10000
+        WHERE   Article_ID > """ + str(index) + """ AND Article_ID <= """ + str(index + stackUnit)))
+        index += stackUnit
         if index > articleLastID:
             break
     completedReview = dict(articleNumberList)
@@ -230,7 +266,6 @@ def AppendArticleDic(reviewData, fileName, title=None, outPut=None):
         if len(splitData) < 2:
             return 'No data in ' + fileName
 
-        # print('Spliting Data', end='                                       \r')
         reviewNumber = fileName + '-' + splitData.pop(0)
         reviewString = splitData.pop(0) + ','
         reviewString += ''.join(splitData)
@@ -243,53 +278,35 @@ def AppendArticleDic(reviewData, fileName, title=None, outPut=None):
         
         if reviewString == '!e':
             continue
-        # print('Converting Word', end='                                       \r')
         resultStringList = ConvertNormalWord(reviewString, reviewString)
 
         resultString = '#'.join(resultStringList)
-        insertQuery += 'INSERT INTO article_dic (Article_Number, Article) VALUES ("' + reviewNumber + '", "' + resultString + '");'
+        insertQuery.append("""
+        INSERT INTO article_dic (Article_Number, Article)
+        VALUES ('""" + reviewNumber + """', '""" + resultString + """')""")
 
-        # print('Append Word', end='                                       \r')
         for word in resultStringList:
-            newItem = {word: wordDic.get(word, 0) + 1}
+            try:
+                currentCount = wordDic[word]
+            except:
+                currentCount = 0
+
+            newItem = {word: currentCount + 1}
             wordDic.update(newItem)
 
         completeIndex += 1
 
-        if completeIndex % 1000 == 1 and completeIndex > 1000:
-            # print('Querying', end='                                       \r')
-            AppendWordDic(wordDic)
-            if insertQuery != '':
-                DataBaseManager.DoSQL(insertQuery)
-                insertQuery = ''
-            if updateQuery != '':
-                DataBaseManager.DoSQL(updateQuery)
-                updateQuery = ''
-            wordDic = {}
-            continue
-
-        if len(wordDic) > 10000:
-            # print('Querying', end='                                       \r')
-            AppendWordDic(wordDic)
-            if insertQuery != '':
-                DataBaseManager.DoSQL(insertQuery)
-                insertQuery = ''
-            if updateQuery != '':
-                DataBaseManager.DoSQL(updateQuery)
-                updateQuery = ''
-            wordDic = {}
-
-    AppendWordDic(wordDic)
-
-    if insertQuery != '':
-        DataBaseManager.DoSQL(insertQuery)
-    if updateQuery != '':
-        DataBaseManager.DoSQL(updateQuery)
+    AppendWordDicQuery(wordDic)
 
     returnString = "Complete building dictionary for " + fileName
     if skippedIndex > 0:
         returnString += ' (skipped ' + str(skippedIndex) + ' of ' + str(len(reviewData)) + ' review)'
-    return returnString + '\n'
+    returnString += '\n'
+
+    DataBaseManager.DoManyQuery(insertQuery, title=title, outPut=outPut+returnString, queryType='INSERT')
+    DataBaseManager.DoManyQuery(updateQuery, title=title, outPut=outPut+returnString, queryType='UPDATE')
+
+    return returnString
 
 
 def SortDic(targetList, targetIndex, order=None):
@@ -329,6 +346,4 @@ def Proceed():
 if __name__ == '__main__':
     baseDir = os.getcwd()
 
-    targetDir = FileManager.DirSelector(baseDir)
-
-    BuildWordDic(targetDir)
+    Proceed()

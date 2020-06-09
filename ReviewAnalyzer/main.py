@@ -2,6 +2,7 @@ import os
 import DictionaryBuilder
 import ReviewDivider
 import WordSimilarity
+import DataBaseManager
 
 result = None
 
@@ -13,14 +14,23 @@ def ShowTitle(outPut='', currentPosition=''):
     print(outPut, end='')
     print('')
 
-def ShowFrequentWord(limit, targetList, dataIndex=0, targetIndex=0, outPut='', title=''):
-    sortedDic = DictionaryBuilder.SortDic(targetList, targetIndex, 'Descend')
+def ShowFrequentWord(limit, targetDict, outPut=None, title=None):
+    if outPut == None:
+        outPut = ''
+    if title == None:
+        title = ''
+
+    SortedDict = {k: v for k, v in sorted(targetDict.items(), key=lambda item: item[1], reverse=True)}
 
     while True:
         ShowTitle(outPut, title)
 
-        for index in range(0,limit):
-            print(str(index + 1) + '. ' + str(sortedDic[index][dataIndex]) + ', ' + str(sortedDic[index][targetIndex]))
+        index = 0
+        for key, value in SortedDict.items():
+            if index >= limit:
+                break
+            print(str(index + 1) + '. ' + str(key) + ', ' + str(value))
+            index += 1
 
         print('')
         print('b. Return to Main menu')
@@ -31,7 +41,14 @@ def ShowFrequentWord(limit, targetList, dataIndex=0, targetIndex=0, outPut='', t
 
         outPut = 'Please enter correct number or charactor\n'
 
-def ShowSearchResult(targetList, targetIndex, printDataList, outPut='', title=''):
+def ShowSearchResult(targetDict=None, targetKey=None, isProduct=None, outPut=None, title=None):
+    if outPut == None:
+        outPut = ''
+    if title == None:
+        title = ''
+    if isProduct == None:
+        isProduct = False
+        
     while True:
         ShowTitle(outPut, title)
 
@@ -43,37 +60,70 @@ def ShowSearchResult(targetList, targetIndex, printDataList, outPut='', title=''
             return ''
         targetData = inputValue
 
-        targetDataList = []
-        for data in targetList:
-            targetDataList.append(data[targetIndex].upper().replace(' ', ''))
+        resultDict = {}
+        if isProduct:
+            ReviewDivider.GetProductDic()
+            searchResult = ReviewDivider.GetProductName(targetData, targetData)['product_Name']
 
-        resultIndex = -1
-        if targetDataList.__contains__(targetData.upper().replace(' ','')):
-            resultIndex = targetDataList.index(targetData.upper().replace(' ',''))
+            if len(searchResult) <= 0:
+                outPut = 'No result of ' + targetData
+                continue
 
-        printTitleList = []
-        printIndexList = []
-        for data in printDataList:
-            printTitleList.append(data.split('#')[0])
-            printIndexList.append(int(data.split('#')[1]))
-
-        outPut = ''
-        if resultIndex == -1:
-            outPut = 'No result of ' + targetData
+            for result in searchResult:
+                try:
+                    detailData = ReviewDivider.productDic[result][targetKey]
+                except:
+                    detailData = ReviewDivider.productDic[result]
+                
+                newResult = {result: detailData}
+                resultDict.update(newResult)
         else:
-            outPut = targetData + "\t"
-            for i in range(0, len(printTitleList)):
-                outPut += printTitleList[i] + ": " + str(targetList[resultIndex][printIndexList[i]]) + '\t'
+            try:
+                resultData = targetDict[targetData]
+            except:
+                outPut = 'No result of ' + targetData
+                continue
+            else:
+                if targetKey != None:
+                    detailData = resultData[targetKey]
+                else:
+                    detailData = resultData
+
+                newResult = {targetData: detailData}
+                resultDict.update(newResult)
+
+        outPut = targetData + "\t"
+        for key, value in resultDict.items():
+            outPut += key + ": " + str(value) + '\n'
 
 def NormalWordDictionaryMenu(outPut=''):
+    sqlResult = DataBaseManager.DoSQL("""
+    SELECT  Normal_Word, Word_Count
+    FROM    similar_word_relation
+    WHERE   Normal_Word = Target_Word
+    """)
+    wordDict = dict(sqlResult)
+
+    sqlResult = DataBaseManager.DoSQL("""
+    SELECT  SUM(Word_Count)
+    FROM    similar_word_relation
+    WHERE   Normal_Word = Target_Word
+    """)
+    totalWordCount = sqlResult[0][0]
+
+    sqlResult = DataBaseManager.DoSQL("""
+    SELECT  COUNT(*)
+    FROM    article_dic
+    """)
+    articleCount = sqlResult[0][0]
     
     while True:
         number = 1
-        if result == None:
+        if len(wordDict) <= 0: 
             ShowTitle('No exist Normal word Dictionary\n' + outPut, 'Normal word Dictionary Menu\n')
         else:
             ShowTitle(outPut)
-            print('words: ' + str(len(wordDic)) + ' / total words: ' + str(wordCount) + ' / articles: ' + str(len(completeDic)))
+            print('words: ' + str(len(wordDict)) + ' / total words: ' + str(totalWordCount) + ' / articles: ' + str(articleCount))
             print(str(number) + '. Show 20 Most frequent words')
             number += 1
             print(str(number) + '. Search word')
@@ -85,16 +135,16 @@ def NormalWordDictionaryMenu(outPut=''):
         print('b. Back')
         inputValue = input('=> ')
 
-        if result == None:
+        if len(wordDict) <= 0:
             if inputValue == '1':
                 outPut = DictionaryBuilder.Proceed()
                 return NormalWordDictionaryMenu(outPut)
         else:
             if inputValue == '1':
-                ShowFrequentWord(20, wordDic, 0, 1, '', '20 Most frequent words')
+                ShowFrequentWord(20, wordDict, title='20 Most frequent words')
                 continue
             elif inputValue == '2':
-                ShowSearchResult(wordDic, 0, ['Count#1'], '', 'Search Normal word Dictionary')
+                ShowSearchResult(wordDict, title='Search Normal word Dictionary')
                 continue
             elif inputValue == '3':
                 outPut = 'This feature is not ready\n'
@@ -110,30 +160,42 @@ def NormalWordDictionaryMenu(outPut=''):
             continue
 
 def ReviewDictionaryMenu(outPut=''):
-    ReviewDivider.GetProductDic()
-    noData = True
-    if len(ReviewDivider.completeReviewList) > 0:
-        noData = False
-        productCount = 0
-        wordCount = 0
-        for dic in ReviewDivider.dividDic:
-            productCount += dic[1]
-        for dic in ReviewDivider.absentDic:
-            wordCount += dic[1]
+    sqlResult = DataBaseManager.DoSQL("""
+    SELECT  Product_Name, Count
+    FROM    product_dic
+    """)
+    productDict = dict(sqlResult)
+
+    sqlResult = DataBaseManager.DoSQL("""
+    SELECT  COUNT(*)
+    FROM    product_dic
+    WHERE   Count > 0
+    """)
+    existProductCount = sqlResult[0][0]
+
+    sqlResult = DataBaseManager.DoSQL("""
+    SELECT  SUM(Count)
+    FROM    product_dic
+    WHERE   Count > 0
+    """)
+    totalProductCount = sqlResult[0][0]
+
+    sqlResult =  DataBaseManager.DoSQL("""
+    SELECT  COUNT(*)
+    FROM    review_dic
+    """)
+    reviewCount = sqlResult[0][0]
     
     while True:
         number = 1
-        if noData:
+        if len(productDict) <= 0:
             ShowTitle('No exist Review Dictionary\n' + outPut, 'Review Dictionary Menu\n')
         else:
             ShowTitle(outPut)
 
-            print('products: ' + str(len(ReviewDivider.productDic)) + ' / total products: ' + str(productCount))
-            print('unprocessed: ' + str(len(ReviewDivider.absentDic)) + ' / total words: ' + str(wordCount))
-            print('total reviews: ' + str(len(ReviewDivider.completeReviewList)))
+            print('products: ' + str(existProductCount) + ' / total products: ' + str(totalProductCount))
+            print('total reviews: ' + str(reviewCount) + ' / total product infomation: ' + str(len(productDict)))
             print(str(number) + '. Show 20 Most frequent products')
-            number += 1
-            print(str(number) + '. Show 20 Most frequent unprocessed words')
             number += 1
             print(str(number) + '. Search product')
             number += 1
@@ -144,24 +206,21 @@ def ReviewDictionaryMenu(outPut=''):
         print('b. Back')
         inputValue = input('=> ')
 
-        if noData:
+        if len(productDict) <= 0:
             if inputValue == '1':
                 outPut = ReviewDivider.Proceed()
                 return ReviewDictionaryMenu(outPut)
         else:
             if inputValue == '1':
-                ShowFrequentWord(20, ReviewDivider.dividDic, 0, 1, '', '20 Most frequent products')
+                ShowFrequentWord(20, productDict, title='20 Most frequent products')
                 continue
             elif inputValue == '2':
-                ShowFrequentWord(20, ReviewDivider.absentDic, 0, 1, '', '20 Most frequent unprocessed words')
+                ShowSearchResult(productDict, targetKey='Count', isProduct=True, title='Search Product Dictionary')
                 continue
             elif inputValue == '3':
-                ShowSearchResult(ReviewDivider.dividDic, 0, ['Count#1'], '', 'Search Product Dictionary')
-                continue
-            elif inputValue == '4':
                 ReviewDivider.ManageProduct('Manage product dictionary')
                 continue
-            elif inputValue == '5':
+            elif inputValue == '4':
                 outPut = ReviewDivider.Proceed()
                 return ReviewDictionaryMenu(outPut)
             
