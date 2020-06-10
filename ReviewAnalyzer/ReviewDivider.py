@@ -69,7 +69,7 @@ def GetProductName(mainData=None, subData=None):
                     productDiscriptionList[0].update(newDiscription)
                     didGet = True
                     break
-                for carrier in value['Carrier']:
+                for carrier in value['carrier']:
                     if len(DictionaryBuilder.GetSameStringIndex(wordList, carrier.upper().replace(' ', '')+mainDiscription)) > 0:
                         newDiscription = {carrier.upper().replace(' ', '')+mainDiscription: key}
                         productDiscriptionList[0].update(newDiscription)
@@ -177,8 +177,9 @@ def AppendWordDicQuery(title=None, outPut=None):
 
     createQuery = []
     updateRelateTableQuery = []
+
     for name, wordDict in productSimilarDic.items():
-        if productDic[name]['RelationTable'] == None:
+        if productDic[name]['relationTable'] == None:
             try:
                 featureList = [name]
                 featureList[1:] = featureDic[productDic[name]['categoryID']]
@@ -202,7 +203,7 @@ def AppendWordDicQuery(title=None, outPut=None):
             WHERE   Product_ID = """ + str(productDic[name]['productID']) + """
             """)
 
-            productDic[name]['RelationTable'] = name
+            productDic[name]['relationTable'] = name
             existWord = {}
         else:
             WordList = []
@@ -249,33 +250,28 @@ def Dividing(reviewData, fileName, title=None, outPut=None):
     noProductIndex = 0
     skippedIndex = 0
 
-    stackUnit = DataBaseManager.maximumQueryStactUnit
-
-    articleLastID = DataBaseManager.DoSQL("""
-    SELECT `AUTO_INCREMENT`
-    FROM  INFORMATION_SCHEMA.TABLES
-    WHERE TABLE_SCHEMA = 'db_capstone'
-    AND   TABLE_NAME   = 'review_dic';
-    """)[0][0]
-    articleNumberList = []
-    index = 0
-    while True:
-        articleNumberList.extend(DataBaseManager.DoSQL("""
-        SELECT  Review_ID, Review_Number
-        FROM    review_dic
-        WHERE   Review_ID > """ + str(index) + """ AND Review_ID <= """ + str(index + stackUnit) + """
-        """))
-        index += stackUnit
-        if index > articleLastID:
-            break
-    completedReview = dict(articleNumberList)
+    sqlResult = DataBaseManager.DoSQL("""
+    SELECT  Review_ID, Review_Number
+    FROM    review_dic
+    """)
+    completedReview = dict(sqlResult)
 
     updateTime = 0
     for data in reviewData:
         currentTime = int(str(datetime.datetime.now().strftime('%Y%m%d%H%M%S')))
         if updateTime < currentTime:
             updateTime = currentTime
-            main.ShowTitle(title, outPut + 'Building dictionary for ' + fileName + ' (' + str(completeIndex + skippedIndex) + '/' +  str(len(reviewData)) + ') (not product: ' + str(noProductIndex) + ')')
+            additionString = ''
+            if noProductIndex > 0 or skippedIndex > 0:
+                additionString += ' ('
+                if skippedIndex > 0:
+                    additionString += 'skipped: ' + str(skippedIndex)
+                if noProductIndex > 0 and skippedIndex > 0:
+                    additionString += ' / '
+                if noProductIndex > 0:
+                    additionString +=  'not product: ' + str(noProductIndex)
+                additionString += ')'
+            main.ShowTitle(title, outPut + 'Building dictionary for ' + fileName + ' (' + str(completeIndex + skippedIndex + noProductIndex) + '/' +  str(len(reviewData)) + ')' + additionString)
 
         splitData = data.split(',')
         if len(splitData) < 2:
@@ -340,10 +336,13 @@ def Dividing(reviewData, fileName, title=None, outPut=None):
 
     returnString = "Complete building dictionary for " + fileName
     if skippedIndex > 0 or noProductIndex > 0:
+        returnString += ' ('
         if skippedIndex > 0:
-            returnString += ' (skipped: ' + str(skippedIndex)
+            returnString += 'skipped: ' + str(skippedIndex)
+        if skippedIndex > 0 and noProductIndex > 0:
+            returnString += ' / '
         if noProductIndex > 0:
-            returnString += ' / not product: ' + str(noProductIndex)
+            returnString += 'not product: ' + str(noProductIndex)
         returnString += ')'
     returnString += '\n'
 
@@ -419,7 +418,7 @@ def GetProductDic(refresh=False):
                     carrierAliasList.append(result[0])
             if data[0] != currentProductID:
                 currentProductID = data[0]
-                newProduct = {'productID': data[0], 'categoryID': data[3], 'carrier': carrierAliasList, 'mainDiscription': [], 'subDiscription': [], 'Count': data[6], 'RelationTable': data[7]}
+                newProduct = {'productID': data[0], 'categoryID': data[3], 'carrier': carrierAliasList, 'mainDiscription': [], 'subDiscription': [], 'count': data[6], 'relationTable': data[7]}
                 newItem = {data[2]: newProduct}
                 productDic.update(newItem)
 

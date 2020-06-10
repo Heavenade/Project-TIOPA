@@ -23,17 +23,17 @@ def ProcessAllProduct(outPut=None, title=None):
 
     removeList = []
     for name, value in productDic.items():
-        if value['RelationTable'] == None or value['Count'] <= 124:
+        if value['relationTable'] == None or value['count'] <= 124:
             removeList.append(name)
 
     for name in removeList:
         productDic.pop(name)
 
-    productDic = {k: v for k, v in sorted(productDic.items(), key=lambda item: item[1]['Count'], reverse=True)}
+    productDic = {k: v for k, v in sorted(productDic.items(), key=lambda item: item[1]['count'], reverse=True)}
 
     index = 1
     for name, value in productDic.items():
-        outPut = value['RelationTable'] + ' (' + str(index) + '/' + str(len(productDic)) + ')'
+        outPut = value['relationTable'] + ' (' + str(index) + '/' + str(len(productDic)) + ')'
         GetContent(target=value['productID'], title=title, outPut=outPut)
         GetSimilarity(target=value['productID'], title=title, outPut=outPut)
 
@@ -164,6 +164,8 @@ def GetContent(target=None, title=None, outPut=None):
     global contents
     global embedding_model
     global baseDir
+
+    embedding_model = None;
     
     if title == None:
         title = 'Get data for Analyze similarity'
@@ -564,7 +566,7 @@ def GetSimilarity(target=None, title=None, outPut=None):
     
     main.ShowTitle(title, outPut)
     if embedding_model == None:
-        embedding_model = FastText(size=15, window=3, min_count=5, workers=4, sg=1)
+        embedding_model = FastText(size=30, window=3, min_count=5, workers=4, sg=1)
         embedding_model.build_vocab(contents)
         embedding_model.train(contents, total_examples=embedding_model.corpus_count, epochs=embedding_model.epochs)
         embedding_model.save(saveDir)

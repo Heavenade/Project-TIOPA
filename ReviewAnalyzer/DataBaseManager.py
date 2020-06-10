@@ -19,9 +19,8 @@ def Connect(dbName):
             client_flag=CLIENT.MULTI_STATEMENTS
         )
     except Exception as err:
-        print('Connection Error! (', end='')
-        print(err, end='')
-        print(')')
+        print('Connection Error!', end=' (')
+        print(err, end=')\n')
 
         return Connect(dbName)
 
@@ -35,14 +34,32 @@ def GetDB(db=None):
 
     return targetDB
 
-def DoSQL(query, db=None):
+def DoSQL(query, db=None, tried=None):
     targetDB = GetDB(db)
     cursor = targetDB.cursor()
-        
-    print('Executing query', end='                                            \r')
-    cursor.execute(query)
-    print('Fetching result', end='                                            \r')
-    result = [list(i) for i in cursor.fetchall()]
+
+    if tried == None:
+        tried = 0
+    
+    cursor.execute("""START TRANSACTION""")
+    try:
+        print('Executing query', end='                                            \r')
+        cursor.execute(query)
+        print('Fetching result', end='                                            \r')
+        result = [list(i) for i in cursor.fetchall()]
+    except Exception as err:
+        print('Sending query FAILED!!', end=' (')
+        print(err, end=')\n')
+        cursor.execute("""ROLLBACK""")
+        cursor.close()
+        targetDB.close()
+
+        if tried > 10:
+            print("Too many errors. Stop process")
+            exit()
+
+        return DoSQL(query, db, tried)
+    
     print('Commiting result', end='                                            \r')
     targetDB.commit()
 
@@ -62,6 +79,8 @@ def DoManyQuery(queryList, db=None, title=None, outPut=None, queryType=None):
         outPut = ''
     if queryType == None:
         queryType = ''
+
+    
         
     if queryList != []:
         updateTime = 0

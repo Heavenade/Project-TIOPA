@@ -26,11 +26,11 @@ def DoNLP(rawData, targetTag=None, mode=None):
                     'JKC', 'JKG', 'JKO', 'JKB', 'JKM', 'JKI', 'JKQ', 'JC', 'JX', 'ETM', 'ETN', 
                     'EP', 'EF', 'EC', 'VX', 'SC', 'SF', 'SE', 'SSO', 'SSC', 'SY', 'SN', 'UNKNOWN']
     connectTag = ['NNP', 'SL', 'SN', 'SY']
+    if mode == 'Review':
+        connectTag.append('NNG')
     exceptSymbal = ['.', '+']
     resultString = []
     tagedData = MeCab.Tagger().parse(rawData)
-
-    # print(tagedData)
 
     resultData = tagedData.split('\n')
     dataList = []
@@ -146,10 +146,19 @@ def DoNLP(rawData, targetTag=None, mode=None):
                             data[1] = 'UNKNOWN'
                             index += 1
                             continue
-                    if rawData.__contains__(dataList[targetIndex][0] + data[0]) == False:
+                    if (data[1] != 'NNG' and dataList[targetIndex][1] == 'NNG') or (data[1] == 'NNG' and dataList[targetIndex][1] != data[1]):
+                        index += 1
+                        continue
+
+                    if data[1] == 'NNG' and dataList[targetIndex][1] == data[1]:
+                        dataList[targetIndex][1] = 'NNG'
                         dataList[targetIndex][0] = dataList[targetIndex][0] + ' '
+                    else:
+                        dataList[targetIndex][1] = 'NNP'
+                        if rawData.__contains__(dataList[targetIndex][0] + data[0]) == False:
+                            dataList[targetIndex][0] = dataList[targetIndex][0] + ' '
+
                     dataList[targetIndex][0] = dataList[targetIndex][0] + data[0]
-                    dataList[targetIndex][1] = 'NNP'
                     dataList.pop(index)
                     continue
 
@@ -193,5 +202,5 @@ def DoNLP(rawData, targetTag=None, mode=None):
     return resultString
 
 if __name__ == '__main__':
-    data =  "가다가 새롭다" 
+    data =  "안면인식장애" 
     print(DoNLP(data, mode='Review'))
