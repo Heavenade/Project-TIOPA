@@ -15,7 +15,8 @@
 
     if($_GET['rcmd_name'] == "" && $_GET['search_text'] != "")
     {
-        $discription_text = trim(preg_replace("/\s| /",'',$_GET['search_text']));//가공
+        $discription_text = strtoupper(trim(preg_replace("/\s| /",'',$_GET['search_text'])));//가공
+
         $hold_text = $_GET['search_text'];
     }
     else
