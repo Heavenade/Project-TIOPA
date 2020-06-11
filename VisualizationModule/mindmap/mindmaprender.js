@@ -193,7 +193,7 @@
         {
             if (i > 0) //leaf
             {
-                return 100;
+                return 150;
             } 
             else //root
             {
@@ -204,7 +204,7 @@
         {
             if (i > 0) //leaf
             {
-                return 25;
+                return 30;
             } 
             else //root
             {
@@ -330,7 +330,7 @@
         attr('x', function (d, i) { //라인 말단과 단어의 거리 x
         if (i > 0) //leaf
         {    
-            return -30;
+            return -50;
         } 
         else //root
         {    

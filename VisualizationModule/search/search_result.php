@@ -34,21 +34,18 @@
     $product_name = $_POST['product_name'];
     
     /*함수*/ 
+
+    $card_data = get_card_data($product_name);////이중 배열 [0][$i] = Feature [1][$i] = 단어
     $product_data = get_product_data($product_name);//이중 배열 [0][$i] = 단어 [1][$i] = 속성
     $root_product=$result_text;
 
      //Main Fearture
-
      if($product_data[0][0] == "")
      {
       $main_feature_text = "No Result";
-
      }
      else
-     {
-      $main_feature_text = $product_data[0][0];
-
-     }
+     { $main_feature_text = $product_data[0][0];}
      
     ?>
    
@@ -112,61 +109,73 @@
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class ="detailed-filter-card center-block">
                       <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
+                      <div class="detailed-filter-text"><span>가성비</span></div>
                       </div>
                     </div>
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class="detailed-filter-card center-block">
                       <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
+                      <div class="detailed-filter-text"><span>가격</span></div>
                       </div>
                     </div>
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class="detailed-filter-card center-block">
                       <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
+                      <div class="detailed-filter-text"><span> 성능 </span></div>
                       </div>
                     </div>
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class="detailed-filter-card center-block">
                       <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
+                      <div class="detailed-filter-text"><span> 화면 </span></div>
                       </div>
                     </div>
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class ="detailed-filter-card center-block">
                       <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
+                      <div class=" detailed-filter-text"><span>배터리 </span></div>
                       </div>
                     </div>
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class ="detailed-filter-card center-block">
-                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
-                      </div>
-                    </div>
-                    <div class="col-md-3 col-sm-4 col-xs-6">
-                      <div class ="detailed-filter-card center-block">
+                      <div class="detailed-filter-text"><span> 디자인 </span></div>
                       <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
                       </div>
                     </div>
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class ="detailed-filter-card center-block">
                       <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
+                      <div class="detailed-filter-text"><span> 사양 </span></div>
+                      </div>
+                    </div>
+                    <div class="col-md-3 col-sm-4 col-xs-6">
+                      <div class ="detailed-filter-card center-block">
+                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
+                      <div class="detailed-filter-text"><span></span></div>
                       </div>
                     </div>
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class = "detailed-filter-card center-block">
                       <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
+                      <div class="detailed-filter-text"><span></span></div>
                       </div>
                     </div>
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class = "detailed-filter-card center-block">
                       <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
+                      <div class="detailed-filter-text"><span></span></div>
                       </div>
                     </div>
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class = "detailed-filter-card center-block">
                       <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
+                      <div class="detailed-filter-text"><span></span></div>
                       </div>
                     </div>
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class = "detailed-filter-card center-block">
                       <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
+                      <div class="detailed-filter-text"><span></span></div>
                       </div>
                     </div>
                   </div>       
@@ -267,10 +276,9 @@
           </div>
         </div>
       </div>
-      <hr>
 
       <!-- Statistics -->
-      <div class="visualization row">
+      <!-- <div class="visualization row">
           <div class="col-md-12"><span class="visualization-text"><br>STATISTICS</span>
           <br><br><br><br><br><br>
             <div class="row">
@@ -282,20 +290,14 @@
                   </div>
                   <div class="col-sm-8">
                       <div class ="visualization-mindmap center-block">
-                        <!-- 마인드 맵 -->
+                        
                       </div>
                   </div>
             </div>
           </div>
         </div>
         <hr>
-
-
-
-
-
-
-      </div>
+      </div> -->
 
     <!-- js 사용 -->
 
@@ -306,7 +308,6 @@
 
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script type="text/javascript" src="../js/bootstrap.js"></script>
-    <!-- iframe에 값 전달 script -->
     
   </body>
 </html>
