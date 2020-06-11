@@ -14,24 +14,42 @@
   <body>
     <?
     ini_set("display_errors", 1);
-    header("content-type:text/html; charset=UTF-8");   
+    header("content-type:text/html; charset=UTF-8");
+
     include_once "../lib/db_connect.php";//db연결
+    include_once "../lib/db_connect_sim.php";//db연결
+    include_once "../lib/get_productdata.php";
+    include_once "../lib/card_random.php";
+
+
     //검색한 문자열 받기
     $result_text = "";
     if($_POST['search_text']){ $result_text=$_POST['search_text'];  }
     
     /*변수*/
-    //Main Fearture
-    $positive_feature_text="카메라 인덕션";
-    $negative_feature_text="배터리 폭발";
+   
 
     $nodenum= 10;
 
-    //Detailed Filter
+    $product_name = $_POST['product_name'];
     
-    /*함수*/
-    //get_productdata.php 참고
-      $root_product=$result_text;
+    /*함수*/ 
+    $product_data = get_product_data($product_name);//이중 배열 [0][$i] = 단어 [1][$i] = 속성
+    $root_product=$result_text;
+
+     //Main Fearture
+
+     if($product_data[0][0] == "")
+     {
+      $main_feature_text = "No Result";
+
+     }
+     else
+     {
+      $main_feature_text = $product_data[0][0];
+
+     }
+     
     ?>
    
     <!-- 컨테이너 -->
@@ -72,7 +90,7 @@
         <div class="col-md-8">
           <div class = "main-feature center-block">
             <span class="main-feature-text center-block"><?=$result_text?>의 대표적인 특징은<br>
-            <?="     $positive_feature_text     |     $negative_feature_text    "?><br>입니다!</span>
+            <script> document.write("<?=$main_feature_text?>"); </script><br>입니다!</span>
           </div>
         </div>
         <div class="col-md-2"></div>
@@ -93,62 +111,62 @@
                     <div class="clearfix visible-sm-block"></div>
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class ="detailed-filter-card center-block">
-                      <img src="../resources/Filter/1.svg">
+                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
                       </div>
                     </div>
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class="detailed-filter-card center-block">
-                      <img src="../resources/Filter/1.svg">
+                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
                       </div>
                     </div>
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class="detailed-filter-card center-block">
-                      <img src="../resources/Filter/1.svg">
+                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
                       </div>
                     </div>
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class="detailed-filter-card center-block">
-                      <img src="../resources/Filter/1.svg">
+                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
                       </div>
                     </div>
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class ="detailed-filter-card center-block">
-                      <img src="../resources/Filter/1.svg">
+                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
                       </div>
                     </div>
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class ="detailed-filter-card center-block">
-                      <img src="../resources/Filter/1.svg">
+                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
                       </div>
                     </div>
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class ="detailed-filter-card center-block">
-                      <img src="../resources/Filter/1.svg">
+                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
                       </div>
                     </div>
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class ="detailed-filter-card center-block">
-                      <img src="../resources/Filter/1.svg">
+                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
                       </div>
                     </div>
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class = "detailed-filter-card center-block">
-                      <img src="../resources/Filter/1.svg">
+                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
                       </div>
                     </div>
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class = "detailed-filter-card center-block">
-                      <img src="../resources/Filter/1.svg">
+                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
                       </div>
                     </div>
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class = "detailed-filter-card center-block">
-                      <img src="../resources/Filter/1.svg">
+                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
                       </div>
                     </div>
                     <div class="col-md-3 col-sm-4 col-xs-6">
                       <div class = "detailed-filter-card center-block">
-                      <img src="../resources/Filter/1.svg">
+                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
                       </div>
                     </div>
                   </div>       
@@ -180,47 +198,47 @@
                       <form name="mindmapform" method="POST" target="map" action="../mindmap/mindmap.php">
                         <input type="hidden" name="nodenum" value ="<?=$nodenum?>"/>
                         <input type="hidden" name="root" value ="<?=$root_product?>"/>
-                        <input type="hidden" name="word_1" value = "사랑"/>
-                        <input type="hidden" name="word_2" value = "해요"/>
-                        <input type="hidden" name="word_3" value = "이"/>
-                        <input type="hidden" name="word_4" value = "한"/>
-                        <input type="hidden" name="word_5" value = "마디"/>
-                        <input type="hidden" name="word_6" value = "참"/>
-                        <input type="hidden" name="word_7" value = "좋은"/>
-                        <input type="hidden" name="word_8" value = "말"/>
-                        <input type="hidden" name="word_9" value = "더이상은"/>
-                        <input type="hidden" name="word_10" value = "제가"/>
-                        <input type="hidden" name="word_11" value = "이 노래의"/>
-                        <input type="hidden" name="word_12" value = "가사를"/>
-                        <input type="hidden" name="word_13" value = "알고 있지"/>
-                        <input type="hidden" name="word_14" value = "않기에"/>
-                        <input type="hidden" name="word_15" value = "부르는 것을"/>
-                        <input type="hidden" name="word_16" value = "관두"/>
-                        <input type="hidden" name="word_17" value = "도록"/>
-                        <input type="hidden" name="word_18" value = "하겠습니다."/>
-                        <input type="hidden" name="word_19" value = "오하요"/>
-                        <input type="hidden" name="word_20" value = "밍나"/>
+                        <input type="hidden" name="word_1" value = "<?=$product_data[0][0]?>"/>
+                        <input type="hidden" name="word_2" value = "<?=$product_data[0][1]?>"/>
+                        <input type="hidden" name="word_3" value = "<?=$product_data[0][2]?>"/>
+                        <input type="hidden" name="word_4" value = "<?=$product_data[0][3]?>"/>
+                        <input type="hidden" name="word_5" value = "<?=$product_data[0][4]?>"/>
+                        <input type="hidden" name="word_6" value = "<?=$product_data[0][5]?>"/>
+                        <input type="hidden" name="word_7" value = "<?=$product_data[0][6]?>"/>
+                        <input type="hidden" name="word_8" value = "<?=$product_data[0][7]?>"/>
+                        <input type="hidden" name="word_9" value = "<?=$product_data[0][8]?>"/>
+                        <input type="hidden" name="word_10" value = "<?=$product_data[0][9]?>"/>
+                        <input type="hidden" name="word_11" value = "<?=$product_data[0][10]?>"/>
+                        <input type="hidden" name="word_12" value = "<?=$product_data[0][11]?>"/>
+                        <input type="hidden" name="word_13" value = "<?=$product_data[0][12]?>"/>
+                        <input type="hidden" name="word_14" value = "<?=$product_data[0][13]?>"/>
+                        <input type="hidden" name="word_15" value = "<?=$product_data[0][14]?>"/>
+                        <input type="hidden" name="word_16" value = "<?=$product_data[0][15]?>"/>
+                        <input type="hidden" name="word_17" value = "<?=$product_data[0][16]?>"/>
+                        <input type="hidden" name="word_18" value = "<?=$product_data[0][17]?>"/>
+                        <input type="hidden" name="word_19" value = "<?=$product_data[0][18]?>"/>
+                        <input type="hidden" name="word_20" value = "<?=$product_data[0][19]?>"/>
 
-                        <input type="hidden" name="type1" value = "1"/>
-                        <input type="hidden" name="type2" value = "2"/>
-                        <input type="hidden" name="type3" value = "7"/>
-                        <input type="hidden" name="type4" value = "3"/>
-                        <input type="hidden" name="type5" value = "4"/>
-                        <input type="hidden" name="type6" value = "6"/>
-                        <input type="hidden" name="type7" value = "5"/>
-                        <input type="hidden" name="type8" value = "2"/>
-                        <input type="hidden" name="type9" value = "1"/>
-                        <input type="hidden" name="type10" value = "7"/>
-                        <input type="hidden" name="type11" value = "4"/>
-                        <input type="hidden" name="type12" value = "3"/>
-                        <input type="hidden" name="type13" value = "6"/>
-                        <input type="hidden" name="type14" value = "5"/>
-                        <input type="hidden" name="type15" value = "1"/>
-                        <input type="hidden" name="type16" value = "2"/>
-                        <input type="hidden" name="type17" value = "4"/>
-                        <input type="hidden" name="type18" value = "3"/>
-                        <input type="hidden" name="type19" value = "6"/>
-                        <input type="hidden" name="type20" value = "7"/>
+                        <input type="hidden" name="type1" value = "<?=$product_data[1][0]?>"/>
+                        <input type="hidden" name="type2" value = "<?=$product_data[1][1]?>"/>
+                        <input type="hidden" name="type3" value = "<?=$product_data[1][2]?>"/>
+                        <input type="hidden" name="type4" value = "<?=$product_data[1][3]?>"/>
+                        <input type="hidden" name="type5" value = "<?=$product_data[1][4]?>"/>
+                        <input type="hidden" name="type6" value = "<?=$product_data[1][5]?>"/>
+                        <input type="hidden" name="type7" value = "<?=$product_data[1][6]?>"/>
+                        <input type="hidden" name="type8" value = "<?=$product_data[1][7]?>"/>
+                        <input type="hidden" name="type9" value = "<?=$product_data[1][8]?>"/>
+                        <input type="hidden" name="type10" value = "<?=$product_data[1][9]?>"/>
+                        <input type="hidden" name="type11" value = "<?=$product_data[1][10]?>"/>
+                        <input type="hidden" name="type12" value = "<?=$product_data[1][11]?>"/>
+                        <input type="hidden" name="type13" value = "<?=$product_data[1][12]?>"/>
+                        <input type="hidden" name="type14" value = "<?=$product_data[1][13]?>"/>
+                        <input type="hidden" name="type15" value = "<?=$product_data[1][14]?>"/>
+                        <input type="hidden" name="type16" value = "<?=$product_data[1][15]?>"/>
+                        <input type="hidden" name="type17" value = "<?=$product_data[1][16]?>"/>
+                        <input type="hidden" name="type18" value = "<?=$product_data[1][17]?>"/>
+                        <input type="hidden" name="type19" value = "<?=$product_data[1][18]?>"/>
+                        <input type="hidden" name="type20" value = "<?=$product_data[1][19]?>"/>
                       </form>
                       <script>
                         document.mindmapform.target = 'map';

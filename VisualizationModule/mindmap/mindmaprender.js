@@ -9,7 +9,7 @@
     
         //사용할 색상 코드
         var palette = {
-        "lightgray": "#819090",
+        "lightgray": "#c2c2c2",
         "gray": "#708284",
         "mediumgray": "#536870",
         "darkgray": "#475B62",
@@ -28,14 +28,14 @@
         "yellowgreen": "#738A05",
         /*for capstone*/
         "capbg":"#F2F2F2",
-        "proudct":"#6454f0",
-        "mainfeature":"#6454f0",
-        "higherfeature":"#37c6cd",
-        "brandfeature":"#c165dd",
-        "positivefeature":"#95c674",
-        "negativefeature":"#f2a16a",
-        "productetcfeature":"#fc76b3",
-        "etcfeature":"#facd68"
+        "proudct":"#6454f0",//0
+        "mainfeature":"#6454f0",//1
+        "higherfeature":"#37c6cd",//2
+        "brandfeature":"#c165dd",//3
+        "positivefeature":"#95c674",//4
+        "negativefeature":"#f2a16a",//5
+        "productetcfeature":"#fc76b3",//6
+        "etcfeature":"#facd68"//7
         };
     
         var nodes = 
@@ -178,7 +178,7 @@
         //연결선의 세팅
         var link = myChart.selectAll('line').
         data(links).enter().append('line').
-        attr('stroke', palette.darkgray);
+        attr('stroke', palette.lightgray);
     
         //노드의 세팅
         var node = myChart.selectAll('rect').
