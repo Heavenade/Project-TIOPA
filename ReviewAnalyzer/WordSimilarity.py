@@ -165,7 +165,7 @@ def GetContent(target=None, title=None, outPut=None):
     global embedding_model
     global baseDir
 
-    embedding_model = None;
+    embedding_model = None
     
     if title == None:
         title = 'Get data for Analyze similarity'
@@ -488,6 +488,7 @@ def UpdateSimilarityDatabase(target=None, title=None, outPut=None):
 
             index += 1
     else:
+        SentiWordBinder = BindSentiWords.BindSentiWords()
         updateTime = 0
         for feature in featureList:
             result = embedding_model.most_similar(positive=[feature], topn=len(embedding_model.wv.index2word) - 1)
@@ -496,7 +497,7 @@ def UpdateSimilarityDatabase(target=None, title=None, outPut=None):
                 updateTime = currentTime
                 main.ShowTitle(title, outPut + 'Append query (' + str(index) + '/' + str(len(featureList)) + ')')
             for similar in result:
-                if feature != similar[0]:
+                if feature != similar[0] and productInfo[1] != similar[0]:
                     # if feature != productInfo[1]:
                     #     try:
                     #         wordDict[similar[0]]
@@ -519,7 +520,6 @@ def UpdateSimilarityDatabase(target=None, title=None, outPut=None):
                     WHERE   Word = '""" + similar[0] + """'
                     """)
 
-                    SentiWordBinder = BindSentiWords.BindSentiWords()
                     sentiValueDict = SentiWordBinder.BindSentiWords([similar[0]])
                     if sentiValueDict[similar[0]] != 'None':
                         updateQuery.append("""
