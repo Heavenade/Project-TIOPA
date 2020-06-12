@@ -190,7 +190,8 @@ def AppendWordDicQuery(title=None, outPut=None):
             CREATE TABLE        `db_capstone_similarity`.`""" + name + """` (
                 `Word_ID`       INT(11) NOT NULL AUTO_INCREMENT,
                 `Word`          TEXT    NOT NULL,
-                `Word_Count`    INT(11) NOT NULL DEFAULT '0',`""" + 
+                `Word_Count`    INT(11) NOT NULL DEFAULT '0',
+                `Sentiment_Value` INT(11) NULL DEFAULT NULL,`""" + 
                 '`FLOAT NULL DEFAULT NULL,`'.join(featureList)
                 + """`          FLOAT NULL DEFAULT NULL,
                 PRIMARY KEY (`Word_ID`)
