@@ -1,4 +1,4 @@
-<?
+<?php
   function dbconn()
   {
     $host_name= "db.p-cube.kr"; //호스트네임
@@ -16,15 +16,18 @@
     return $connect;
   }
 
+  //!!!!!!!!!왜인지모르겠지만 에러남!!!!!!!!!!!!
+  //!!!!!!!!!!!!그래서 각주처리함!!!!!!!!!!!!!!!
+  
   //에러메세지 출력
-  function Error($msg)
-  {
-    echo "
-    <script>
-    window.alert('$msg');
-    history.back(1);
-    </script>
-    ";
-    exit;//위에 에러메세지만 띄운다.
-  }
+  // function Error($msg)
+  // {
+  //   echo "
+  //   <script>
+  //   window.alert('$msg');
+  //   history.back(1);
+  //   </script>
+  //   ";
+  //   exit;//위에 에러메세지만 띄운다.
+  // }
 ?>

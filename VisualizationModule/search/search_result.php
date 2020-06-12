@@ -7,12 +7,12 @@
 
     <script src="https://d3js.org/d3.v5.min.js"></script>
 
-    <link rel="stylesheet" href="../css/bootstrap.css"> 
-    <link rel="stylesheet" href="../css/capstone-custom.css">
+    <link rel="stylesheet" href="../css/bootstrap.css?after"> 
+    <link rel="stylesheet" href="../css/capstone-custom.css?after">
   </head>
 
   <body>
-    <?
+    <?php
     ini_set("display_errors", 1);
     header("content-type:text/html; charset=UTF-8");
 
@@ -31,21 +31,51 @@
 
     $nodenum= 10;
 
+    //제품 공식명칭 받기
     $product_name = $_POST['product_name'];
+    //마인드맵 표시할 특징 받기
+    //메인일때는 제품이름임
+    $feature_name = $_POST['feature_name'];
     
     /*함수*/ 
 
-    $card_data = get_card_data($product_name);////이중 배열 [0][$i] = Feature [1][$i] = 단어
-    $product_data = get_product_data($product_name);//이중 배열 [0][$i] = 단어 [1][$i] = 속성
+    //제품의 대표 특징단어와 특징별 대표단어 가져오기
+    $feature_data = get_main_feature_data($product_name);
+
+    //대표 특징단어는 [0][1]
+    $main_feature = $feature_data[0][1];
+
+    //특징 이름은 [1~][0]
+    //특징별 대표단어는 [1~][1]
+    $htmlList = '';
+    $i = 1;
+    while ($i < count($feature_data))
+    {
+      $targetFeatureName = $feature_data[$i][0];
+      $image_string=rand_card_num();
+      if (count($feature_data[$i]) > 0)
+        $targetWord = $feature_data[$i][1];
+      else
+        $targetWord = "(없음)";
+
+      //html 코드 생성
+      //form submit feature_name 의 value에 마인드맵으로 로드할 특징 이름 입력
+      $htmlList = $htmlList."
+      <div class='col-md-3 col-sm-4 col-xs-6'>
+        <div class ='detailed-filter-card center-block'>
+          <img src='../resources/Filter/$image_string.svg'>
+          <div class='detailed-filter-text'><span>$targetFeatureName: $targetWord</span></div>
+          <button type='submit' name='feature_name' value='$targetFeatureName' class='btn detailed-filter-btn'></button>
+        </div>
+      </div>
+      ";
+
+      $i += 1;
+    }
+    
     $root_product=$result_text;
 
-     //Main Fearture
-     if($product_data[0][0] == "")
-     {
-      $main_feature_text = "No Result";
-     }
-     else
-     { $main_feature_text = $product_data[0][0];}
+    $product_data = get_product_data($product_name, $feature_name);
      
     ?>
    
@@ -86,8 +116,8 @@
         <div class="col-md-2"></div>
         <div class="col-md-8">
           <div class = "main-feature center-block">
-            <span class="main-feature-text center-block"><?=$result_text?>의 대표적인 특징은<br>
-            <script> document.write("<?=$main_feature_text?>"); </script><br>입니다!</span>
+            <span class="main-feature-text center-block"><?=$product_name?>의 대표적인 특징은<br>
+            <script> document.write("<?=$main_feature?>"); </script><br>입니다!</span>
           </div>
         </div>
         <div class="col-md-2"></div>
@@ -97,88 +127,26 @@
 
       <!-- Detailed Filter -->
       <div class="detailed-filter row">
-        <div class="col-md-12"><span class="detailed-filter-text">DETAILED FILTER</span>
+        <div class="col-md-12"><span class="detailed-filter">DETAILED FILTER</span>
           <div class="row">
               <div class="col-sm-2">
               </div>
               <div class="col-sm-8">
-              <br><br>
-                  <!-- card grid  -->
-                  <div class="row">
-                    <div class="clearfix visible-sm-block"></div>
-                    <div class="col-md-3 col-sm-4 col-xs-6">
-                      <div class ="detailed-filter-card center-block">
-                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
-                      <div class="detailed-filter-text"><span>가성비</span></div>
-                      </div>
+                <br><br>
+                <form id="search_result_submit" style="display: hidden" action="./search_result.php" method="POST">
+                    <!--사용자 검색어 -->
+                    <input type="hidden" name="search_text" value="<?=$product_name?>">
+                    <!-- 제품 정보 -->
+                    <input type="hidden" name="product_name" value="<?=$product_name?>">
+                    <!-- card grid  -->
+                    <div class="row">
+                      <div class="clearfix visible-sm-block"></div>
+                      <!-- php로 html 코드 출력 -->
+                      <?php
+                      echo $htmlList;
+                      ?>
                     </div>
-                    <div class="col-md-3 col-sm-4 col-xs-6">
-                      <div class="detailed-filter-card center-block">
-                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
-                      <div class="detailed-filter-text"><span>가격</span></div>
-                      </div>
-                    </div>
-                    <div class="col-md-3 col-sm-4 col-xs-6">
-                      <div class="detailed-filter-card center-block">
-                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
-                      <div class="detailed-filter-text"><span> 성능 </span></div>
-                      </div>
-                    </div>
-                    <div class="col-md-3 col-sm-4 col-xs-6">
-                      <div class="detailed-filter-card center-block">
-                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
-                      <div class="detailed-filter-text"><span> 화면 </span></div>
-                      </div>
-                    </div>
-                    <div class="col-md-3 col-sm-4 col-xs-6">
-                      <div class ="detailed-filter-card center-block">
-                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
-                      <div class=" detailed-filter-text"><span>배터리 </span></div>
-                      </div>
-                    </div>
-                    <div class="col-md-3 col-sm-4 col-xs-6">
-                      <div class ="detailed-filter-card center-block">
-                      <div class="detailed-filter-text"><span> 디자인 </span></div>
-                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
-                      </div>
-                    </div>
-                    <div class="col-md-3 col-sm-4 col-xs-6">
-                      <div class ="detailed-filter-card center-block">
-                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
-                      <div class="detailed-filter-text"><span> 사양 </span></div>
-                      </div>
-                    </div>
-                    <div class="col-md-3 col-sm-4 col-xs-6">
-                      <div class ="detailed-filter-card center-block">
-                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
-                      <div class="detailed-filter-text"><span></span></div>
-                      </div>
-                    </div>
-                    <div class="col-md-3 col-sm-4 col-xs-6">
-                      <div class = "detailed-filter-card center-block">
-                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
-                      <div class="detailed-filter-text"><span></span></div>
-                      </div>
-                    </div>
-                    <div class="col-md-3 col-sm-4 col-xs-6">
-                      <div class = "detailed-filter-card center-block">
-                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
-                      <div class="detailed-filter-text"><span></span></div>
-                      </div>
-                    </div>
-                    <div class="col-md-3 col-sm-4 col-xs-6">
-                      <div class = "detailed-filter-card center-block">
-                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
-                      <div class="detailed-filter-text"><span></span></div>
-                      </div>
-                    </div>
-                    <div class="col-md-3 col-sm-4 col-xs-6">
-                      <div class = "detailed-filter-card center-block">
-                      <img src="../resources/Filter/<?=$image_string=rand_card_num();?>.svg">
-                      <div class="detailed-filter-text"><span></span></div>
-                      </div>
-                    </div>
-                  </div>       
+                </form>
               </div>
               <div class="col-sm-2"></div>
           </div>
@@ -207,47 +175,48 @@
                       <form name="mindmapform" method="POST" target="map" action="../mindmap/mindmap.php">
                         <input type="hidden" name="nodenum" value ="<?=$nodenum?>"/>
                         <input type="hidden" name="root" value ="<?=$root_product?>"/>
-                        <input type="hidden" name="word_1" value = "<?=$product_data[0][0]?>"/>
-                        <input type="hidden" name="word_2" value = "<?=$product_data[0][1]?>"/>
-                        <input type="hidden" name="word_3" value = "<?=$product_data[0][2]?>"/>
-                        <input type="hidden" name="word_4" value = "<?=$product_data[0][3]?>"/>
-                        <input type="hidden" name="word_5" value = "<?=$product_data[0][4]?>"/>
-                        <input type="hidden" name="word_6" value = "<?=$product_data[0][5]?>"/>
-                        <input type="hidden" name="word_7" value = "<?=$product_data[0][6]?>"/>
-                        <input type="hidden" name="word_8" value = "<?=$product_data[0][7]?>"/>
-                        <input type="hidden" name="word_9" value = "<?=$product_data[0][8]?>"/>
-                        <input type="hidden" name="word_10" value = "<?=$product_data[0][9]?>"/>
-                        <input type="hidden" name="word_11" value = "<?=$product_data[0][10]?>"/>
-                        <input type="hidden" name="word_12" value = "<?=$product_data[0][11]?>"/>
-                        <input type="hidden" name="word_13" value = "<?=$product_data[0][12]?>"/>
-                        <input type="hidden" name="word_14" value = "<?=$product_data[0][13]?>"/>
-                        <input type="hidden" name="word_15" value = "<?=$product_data[0][14]?>"/>
-                        <input type="hidden" name="word_16" value = "<?=$product_data[0][15]?>"/>
-                        <input type="hidden" name="word_17" value = "<?=$product_data[0][16]?>"/>
-                        <input type="hidden" name="word_18" value = "<?=$product_data[0][17]?>"/>
-                        <input type="hidden" name="word_19" value = "<?=$product_data[0][18]?>"/>
-                        <input type="hidden" name="word_20" value = "<?=$product_data[0][19]?>"/>
+                        <?php
+                        $list = '';
+                        $i = 0;
+                        while ($i < 20)
+                        {
+                          if ($i < count($product_data[0]))
+                          {
+                            $targetData = $product_data[0][$i];
+                          }
+                          else
+                          {
+                            $targetData = null;
+                          }
+                          $targetIndex = $i + 1;
+                          $list = $list."
+                          <input type='hidden' name='word_{$targetIndex}' value = '{$targetData}'/>
+                          ";
+                          $i += 1;
+                        }
 
-                        <input type="hidden" name="type1" value = "<?=$product_data[1][0]?>"/>
-                        <input type="hidden" name="type2" value = "<?=$product_data[1][1]?>"/>
-                        <input type="hidden" name="type3" value = "<?=$product_data[1][2]?>"/>
-                        <input type="hidden" name="type4" value = "<?=$product_data[1][3]?>"/>
-                        <input type="hidden" name="type5" value = "<?=$product_data[1][4]?>"/>
-                        <input type="hidden" name="type6" value = "<?=$product_data[1][5]?>"/>
-                        <input type="hidden" name="type7" value = "<?=$product_data[1][6]?>"/>
-                        <input type="hidden" name="type8" value = "<?=$product_data[1][7]?>"/>
-                        <input type="hidden" name="type9" value = "<?=$product_data[1][8]?>"/>
-                        <input type="hidden" name="type10" value = "<?=$product_data[1][9]?>"/>
-                        <input type="hidden" name="type11" value = "<?=$product_data[1][10]?>"/>
-                        <input type="hidden" name="type12" value = "<?=$product_data[1][11]?>"/>
-                        <input type="hidden" name="type13" value = "<?=$product_data[1][12]?>"/>
-                        <input type="hidden" name="type14" value = "<?=$product_data[1][13]?>"/>
-                        <input type="hidden" name="type15" value = "<?=$product_data[1][14]?>"/>
-                        <input type="hidden" name="type16" value = "<?=$product_data[1][15]?>"/>
-                        <input type="hidden" name="type17" value = "<?=$product_data[1][16]?>"/>
-                        <input type="hidden" name="type18" value = "<?=$product_data[1][17]?>"/>
-                        <input type="hidden" name="type19" value = "<?=$product_data[1][18]?>"/>
-                        <input type="hidden" name="type20" value = "<?=$product_data[1][19]?>"/>
+                        $i = 0;
+                        while ($i < 20)
+                        {
+                          
+                          if ($i < count($product_data[1]))
+                          {
+                            $targetData = $product_data[1][$i];
+                          }
+                          else
+                          {
+                            $targetData = null;
+                          }
+                          $targetIndex = $i + 1;
+                          $list = $list."
+                          <input type='hidden' name='type{$targetIndex}' value = '{$targetData}'/>
+                          ";
+                          $i += 1;
+                        }
+
+                        echo $list;
+                        ?>
+
                       </form>
                       <script>
                         document.mindmapform.target = 'map';
