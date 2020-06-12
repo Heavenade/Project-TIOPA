@@ -11,7 +11,7 @@
   </head>
 
   <body>
-    <?
+    <?php
     ini_set("display_errors", 1);
     //include_once "lib/db_connect.php";//db연결
     include_once "lib/rcmd_random.php";//recommend random
@@ -55,90 +55,28 @@
               <!-- 하위 6칸 그리드  -->
               <div class="row">
                 <div class="clearfix visible-sm-block"></div>
-                <div class="col-lg-2 col-md-3 col-sm-4 col-xs-6">
-                  <div class ="img-recommend center-block">
-                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
-                    <div class="rcmd-text"><span><?=get_rcmd_name(0,$rcmd_data);?></span></div>
-                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(0,$rcmd_data);?>" class="btn rcmd-btn"></button>
+                <!-- php 로 html 코드 생성 -->
+                <?php
+                $list = '';
+                $i = 0;
+                while ($i < 12)
+                {
+                  $targetImageString = rand_rcmd_num();
+                  $targetRCMDname = get_rcmd_name($i,$rcmd_data);
+                  $list = $list."
+                  <div class='col-lg-2 col-md-3 col-sm-4 col-xs-6'>
+                    <div class ='img-recommend center-block'>
+                      <img src='resources/Recommend_Rect/{$targetImageString}.svg'>
+                      <div class='rcmd-text'><span>{$targetRCMDname}</span></div>
+                      <button type='submit' name='rcmd_name' value='{$targetRCMDname}' class='btn rcmd-btn'></button>
+                    </div>
                   </div>
-                </div>
-                <div class="col-lg-2 col-md-3 col-sm-4 col-xs-6">
-                  <div class ="img-recommend center-block">
-                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
-                    <div class="rcmd-text"><span><?=get_rcmd_name(1,$rcmd_data);?></span></div>
-                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(1,$rcmd_data);?>" class="btn rcmd-btn"></button>
-                  </div>
-                </div>
-                <div class="col-lg-2 col-md-3 col-sm-4 col-xs-6">
-                  <div class ="img-recommend center-block">
-                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
-                    <div class="rcmd-text"><span><?=get_rcmd_name(2,$rcmd_data);?></span></div>
-                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(2,$rcmd_data);?>" class="btn rcmd-btn"></button>
-                  </div>
-                </div>
-                <div class="col-lg-2 col-md-3 col-sm-4 col-xs-6">
-                  <div class ="img-recommend center-block">
-                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
-                    <div class="rcmd-text"><span><?=get_rcmd_name(3,$rcmd_data);?></span></div>
-                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(3,$rcmd_data);?>" class="btn rcmd-btn"></button>
-                  </div>
-                </div>
-                <div class="col-lg-2 col-md-3 col-sm-4 col-xs-6">
-                  <div class ="img-recommend center-block">
-                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
-                    <div class="rcmd-text"><span><?=get_rcmd_name(4,$rcmd_data);?></span></div>
-                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(4,$rcmd_data);?>" class="btn rcmd-btn"></button>
-                  </div>
-                </div>
-                <div class="col-lg-2 col-md-3 col-sm-4 col-xs-6">
-                  <div class ="img-recommend center-block">
-                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
-                    <div class="rcmd-text"><span><?=get_rcmd_name(5,$rcmd_data);?></span></div>
-                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(5,$rcmd_data);?>" class="btn rcmd-btn"></button>
-                  </div>
-                </div>
-                <div class="col-lg-2 col-md-3 col-sm-4 col-xs-6">
-                  <div class ="img-recommend center-block">
-                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
-                    <div class="rcmd-text"><span><?=get_rcmd_name(6,$rcmd_data);?></span></div>
-                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(6,$rcmd_data);?>" class="btn rcmd-btn"></button>
-                  </div>
-                </div>
-                <div class="col-lg-2 col-md-3 col-sm-4 col-xs-6">
-                  <div class ="img-recommend center-block">
-                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
-                    <div class="rcmd-text"><span><?=get_rcmd_name(7,$rcmd_data);?></span></div>
-                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(7,$rcmd_data);?>" class="btn rcmd-btn"></button>
-                  </div>
-                </div>
-                <div class="col-lg-2 col-md-3 col-sm-4 col-xs-6">
-                  <div class ="img-recommend center-block">
-                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
-                    <div class="rcmd-text"><span><?=get_rcmd_name(8,$rcmd_data);?></span></div>
-                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(8,$rcmd_data);?>" class="btn rcmd-btn"></button>
-                  </div>
-                </div>
-                <div class="col-lg-2 col-md-3 col-sm-4 col-xs-6">
-                  <div class ="img-recommend center-block">
-                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
-                    <div class="rcmd-text"><span><?=get_rcmd_name(9,$rcmd_data);?></span></div>
-                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(9,$rcmd_data);?>" class="btn rcmd-btn"></button>
-                  </div>
-                </div>
-                <div class="col-lg-2 col-md-3 col-sm-4 col-xs-6">
-                  <div class ="img-recommend center-block">
-                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
-                    <div class="rcmd-text"><span><?=get_rcmd_name(10,$rcmd_data);?></span></div>
-                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(10,$rcmd_data);?>" class="btn rcmd-btn"></button>
-                  </div>
-                </div>
-                <div class="col-lg-2 col-md-3 col-sm-4 col-xs-6">
-                  <div class ="img-recommend center-block">
-                    <img src="resources/Recommend_Rect/<?=$image_string=rand_rcmd_num();?>.svg">
-                    <div class="rcmd-text"><span><?=get_rcmd_name(11,$rcmd_data);?></span></div>
-                    <button type="submit" name="rcmd_name" value="<?=get_rcmd_name(11,$rcmd_data);?>" class="btn rcmd-btn"></button>
-                  </div>
-                </div>
+                  ";
+
+                  $i += 1;
+                }
+                echo $list;
+                ?>
               </div>       
           </div>
           <div class="col-sm-2"></div>

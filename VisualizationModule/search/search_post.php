@@ -1,5 +1,5 @@
 <!-- 텍스트 데이터 받아와서 검색하는 페이지 -->
-<?
+<?php
     ini_set("display_errors", 1);
     header("content-type:text/html; charset=UTF-8");
     include_once "../lib/db_connect.php";
@@ -88,6 +88,7 @@
             <!-- 제품 정보 -->
             <input type="hidden" name="product_name" value="<?=$product_name?>">
             <input type="hidden" name="product_id" value="<?=$hproduct_idt?>">
+            <input type="hidden" name="feature_name" value="<?=$product_name?>">
         </form>
         <!-- Category_result로 페이지 이동 시 POST -->
         <form id="category_result_submit" style="display: hidden" action="./category_result.php" method="POST">

@@ -57,7 +57,7 @@
             var type_7 = "<?=$_POST['type7']?>";
             var type_8 = "<?=$_POST['type8']?>";
             var type_9 = "<?=$_POST['type9']?>";
-            var type_10 = "<?=$_POST['type10']?>";
+            var type_10= "<?=$_POST['type10']?>";
             var type_11= "<?=$_POST['type11']?>";
             var type_12= "<?=$_POST['type12']?>";
             var type_13= "<?=$_POST['type13']?>";
