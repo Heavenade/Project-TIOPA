@@ -239,9 +239,15 @@
                       </div>
                     </div>
                 </div>
-                <div class="col-sm-2">
-                </div>
             </div>
+          </div>
+        </div>
+      </div>
+      <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+      <div class="copyright-row">
+        <div class="row">
+          <div class="col-md-2"></div>
+          <span style="text-align:center;" class="col-md-8">Copyright (c) 2020 by digitaldoodle (https://codepen.io/digital-doodle/pen/epBXRa)</span>
           </div>
         </div>
       </div>

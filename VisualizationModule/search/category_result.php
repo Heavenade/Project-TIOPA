@@ -12,7 +12,7 @@
 
   <body>
     <!-- php -->
-    <?
+    <?php
     ini_set("display_errors", 1);
     //header("content-type:text/html; charset=UTF-8");
     include_once "../lib/db_connect.php";//db연결

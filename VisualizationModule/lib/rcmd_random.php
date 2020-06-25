@@ -66,7 +66,7 @@
         $category_ID = (string)$row[0];
     
         //카테고리 내의 랜덤 제품명 받아오기
-        $query = "SELECT `Product_Name` FROM `product_dic` WHERE `Category_ID` = '$category_ID' ORDER BY RAND() LIMIT 12";
+        $query = "SELECT `Product_Name` FROM `product_dic` WHERE `Category_ID` = '$category_ID' ORDER BY `Count` DESC LIMIT 12";
 
         $data = mysqli_query($connect,$query);
         
