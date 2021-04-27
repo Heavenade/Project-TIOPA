@@ -1,6 +1,6 @@
 # Project-TIOPA
 
-세종대학교 캡스톤 디자인 ()
+세종대학교 캡스톤 디자인 (졸업 작품)
 
 Typical Impression Of Product Analyzer
 
